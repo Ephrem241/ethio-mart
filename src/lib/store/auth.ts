@@ -20,6 +20,10 @@ export interface AuthUser {
   phone?: string
   role: Role
   createdAt: string
+  // False for an account that only ever signed in with Google: it has no
+  // password, so "change password" (which verifies the current one) doesn't
+  // apply to it.
+  hasPassword: boolean
 }
 
 interface AuthState {

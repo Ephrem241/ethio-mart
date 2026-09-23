@@ -2,6 +2,8 @@ import Link from "next/link"
 
 import { getSafeRedirect } from "@/lib/safe-redirect"
 import { AuthCard } from "@/components/auth/auth-card"
+import { AuthDivider } from "@/components/auth/auth-divider"
+import { GoogleButton } from "@/components/auth/google-button"
 import { LoginForm } from "@/components/auth/login-form"
 
 export default async function LoginPage({
@@ -35,7 +37,16 @@ export default async function LoginPage({
         </>
       }
     >
-      <LoginForm redirectTo={redirectTo} />
+      <div className="space-y-4">
+        {params.error === "oauth" && (
+          <p className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
+            Google sign-in didn&apos;t complete. Please try again, or log in with your email.
+          </p>
+        )}
+        <GoogleButton redirectTo={redirectTo} />
+        <AuthDivider />
+        <LoginForm redirectTo={redirectTo} />
+      </div>
     </AuthCard>
   )
 }

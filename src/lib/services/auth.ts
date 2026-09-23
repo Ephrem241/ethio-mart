@@ -18,7 +18,7 @@ interface ProfileRow {
   created_at: string
 }
 
-function toAuthUser(row: ProfileRow): AuthUser {
+function toAuthUser(row: ProfileRow, hasPassword: boolean): AuthUser {
   return {
     id: row.id,
     fullName: row.full_name,
@@ -26,7 +26,14 @@ function toAuthUser(row: ProfileRow): AuthUser {
     phone: row.phone ?? undefined,
     role: row.role,
     createdAt: row.created_at,
+    hasPassword,
   }
+}
+
+// Supabase lists every way an account can sign in under app_metadata.providers.
+function hasPasswordLogin(authUser: User): boolean {
+  const providers = (authUser.app_metadata?.providers as string[] | undefined) ?? []
+  return providers.includes("email")
 }
 
 // Loads the `profiles` row (role, phone, ...) for a signed-in auth user. If
@@ -39,7 +46,7 @@ export async function fetchAuthUser(supabase: SupabaseClient, authUser: User): P
     .eq("id", authUser.id)
     .maybeSingle()
 
-  if (data) return toAuthUser(data as ProfileRow)
+  if (data) return toAuthUser(data as ProfileRow, hasPasswordLogin(authUser))
 
   return {
     id: authUser.id,
@@ -47,6 +54,7 @@ export async function fetchAuthUser(supabase: SupabaseClient, authUser: User): P
     email: authUser.email ?? "",
     role: "customer",
     createdAt: authUser.created_at,
+    hasPassword: hasPasswordLogin(authUser),
   }
 }
 
@@ -113,6 +121,24 @@ export async function signIn(input: { email: string; password: string }): Promis
   return { success: true, user }
 }
 
+// Google sign-in. `success: true` means the redirect to Google has STARTED
+// (the page is navigating away — callers should keep showing "loading").
+// Coming back, Google -> Supabase -> /auth/callback exchanges the code for a
+// session cookie and forwards to `next`; the AuthProvider then picks the
+// session up exactly as it does for a password sign-in (so a guest cart is
+// merged too).
+export async function signInWithGoogle(
+  next: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  const { error } = await createClient().auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback?flow=oauth&next=${encodeURIComponent(next)}`,
+    },
+  })
+  return error ? { success: false, error: error.message } : { success: true }
+}
+
 export async function signOut(): Promise<void> {
   await createClient().auth.signOut()
   useAuthStore.getState()._setUser(null)
@@ -156,7 +182,7 @@ export async function updateProfile(input: {
   if (error) return { success: false, error: error.message }
   if (!data) return { success: false, error: "Account not found." }
 
-  const user = toAuthUser(data as ProfileRow)
+  const user = toAuthUser(data as ProfileRow, useAuthStore.getState().user?.hasPassword ?? true)
   useAuthStore.getState()._setUser(user)
   return { success: true, user }
 }

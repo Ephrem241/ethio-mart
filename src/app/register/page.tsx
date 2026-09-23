@@ -2,6 +2,8 @@ import Link from "next/link"
 
 import { getSafeRedirect } from "@/lib/safe-redirect"
 import { AuthCard } from "@/components/auth/auth-card"
+import { AuthDivider } from "@/components/auth/auth-divider"
+import { GoogleButton } from "@/components/auth/google-button"
 import { RegisterForm } from "@/components/auth/register-form"
 
 export default async function RegisterPage({
@@ -28,7 +30,11 @@ export default async function RegisterPage({
         </p>
       }
     >
-      <RegisterForm redirectTo={redirectTo} />
+      <div className="space-y-4">
+        <GoogleButton redirectTo={redirectTo} label="Sign up with Google" />
+        <AuthDivider />
+        <RegisterForm redirectTo={redirectTo} />
+      </div>
     </AuthCard>
   )
 }
