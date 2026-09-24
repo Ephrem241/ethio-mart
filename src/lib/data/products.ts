@@ -28,6 +28,11 @@ export interface Product {
    */
   image_url?: string | null
   /**
+   * Every photo of the product, main one first (`image_url` is `image_urls[0]`).
+   * The product page's gallery shows exactly these — no invented extra views.
+   */
+  image_urls?: string[]
+  /**
    * Admin-settable (Phase 11) real control over the homepage's "Popular
    * products" rail, replacing the old hardcoded POPULAR_PRODUCT_IDS list.
    */

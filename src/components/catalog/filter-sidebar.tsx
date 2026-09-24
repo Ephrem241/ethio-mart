@@ -22,7 +22,7 @@ function FilterSidebar({
   const router = useRouter()
 
   return (
-    <aside className="hidden w-64 shrink-0 lg:block">
+    <aside className="sticky top-32 hidden w-64 shrink-0 rounded-card border border-border/70 bg-card p-5 shadow-soft lg:block">
       <FilterFields
         filters={filters}
         facets={facets}

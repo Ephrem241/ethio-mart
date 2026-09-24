@@ -1,8 +1,10 @@
 "use client"
 
+import { OrderDetailSkeleton } from "@/components/feedback/skeletons"
 import Link from "next/link"
 import { ChevronLeft, PackageX } from "lucide-react"
 
+import { useT } from "@/lib/i18n/provider"
 import { useRequireAuth } from "@/lib/hooks/use-require-auth"
 import { useOrder } from "@/lib/hooks/use-orders"
 import { formatOrderDateTime } from "@/lib/date"
@@ -15,12 +17,13 @@ import { EmptyState } from "@/components/feedback/empty-state"
 import { Button } from "@/components/ui/button"
 
 function OrderDetailContent({ orderId }: { orderId: string }) {
+  const t = useT()
   const { user, ready } = useRequireAuth(`/login?redirect=/orders/${orderId}`)
   // Wait for the signed-in user before fetching; RLS then guarantees the
   // query can only ever return this user's own order.
   const { data: order, loading } = useOrder(user ? orderId : undefined)
 
-  if (!ready || !user || loading) return null
+  if (!ready || !user || loading) return <OrderDetailSkeleton />
 
   // A nonexistent order and one belonging to someone else render the
   // identical empty state — distinguishing them would let a signed-in user
@@ -31,11 +34,11 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
     return (
       <EmptyState
         icon={PackageX}
-        title="Order not found."
-        description="We couldn't find this order. It may belong to a different account or browser."
+        title={t("order.notFound")}
+        description={t("order.notFoundText")}
         action={
           <Button asChild>
-            <Link href="/account/orders">View your orders</Link>
+            <Link href="/account/orders">{t("order.viewOrders")}</Link>
           </Button>
         }
       />
@@ -47,12 +50,14 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
       <div className="space-y-3">
         <Link href="/account/orders" className="inline-flex items-center gap-1 text-sm text-muted-text hover:text-charcoal">
           <ChevronLeft aria-hidden className="size-4" />
-          Back to orders
+          {t("order.back")}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h1 className="text-xl font-semibold text-charcoal">Order #{order.order_number}</h1>
-            <p className="text-sm text-muted-text">Placed {formatOrderDateTime(order.created_at)}</p>
+            <h1 className="text-xl font-semibold text-charcoal">{t("order.title", { number: order.order_number })}</h1>
+            <p className="text-sm text-muted-text">
+              {t("order.placed", { date: formatOrderDateTime(order.created_at, t.locale) })}
+            </p>
           </div>
           <OrderStatus status={order.status} />
         </div>

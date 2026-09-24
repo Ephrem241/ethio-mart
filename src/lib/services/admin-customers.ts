@@ -31,7 +31,7 @@ export async function fetchProfiles(): Promise<AdminProfile[]> {
     .select("id, full_name, email, phone, role, created_at")
     .order("created_at", { ascending: false })
 
-  if (error) throw new Error(`Failed to load customers: ${error.message}`)
+  if (error) throw new Error(`Failed to load customers: ${error.message}`) // i18n-ignore: developer-facing
   return (data as ProfileRow[]).map((row) => ({
     id: row.id,
     fullName: row.full_name,

@@ -1,17 +1,29 @@
+import type { Metadata } from "next"
+
+import { privateMetadata } from "@/lib/seo/metadata"
 import Link from "next/link"
 
+import { getT } from "@/lib/i18n/server"
 import { AuthCard } from "@/components/auth/auth-card"
 import { ResetPasswordForm } from "@/components/auth/reset-password-form"
 
-export default function ResetPasswordPage() {
+// Not for search results: it belongs to one visitor (see privateMetadata).
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  return privateMetadata(t("auth.reset.title"))
+}
+
+export default async function ResetPasswordPage() {
+  const t = await getT()
+
   return (
     <AuthCard
-      title="Choose a new password"
+      title={t("auth.reset.title")}
       footer={
         <p>
-          Link not working?{" "}
-          <Link href="/forgot-password" className="text-burgundy hover:underline">
-            Request a new one
+          {t("auth.reset.linkNotWorking")}{" "}
+          <Link href="/forgot-password" className="text-forest hover:underline">
+            {t("auth.reset.requestNew")}
           </Link>
         </p>
       }

@@ -1,13 +1,10 @@
+"use client"
+
+import { useT } from "@/lib/i18n/provider"
 import type { PaymentMethodId } from "@/lib/types/orders"
 import type { PaymentStatus } from "@/lib/services/payment"
 import { getPaymentProvider } from "@/lib/services/payment"
 import { formatPrice } from "@/lib/currency"
-
-const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
-  pending: "Pending",
-  paid: "Paid",
-  failed: "Failed",
-}
 
 function OrderPaymentSection({
   paymentMethod,
@@ -24,37 +21,38 @@ function OrderPaymentSection({
   discount: number
   total: number
 }) {
+  const t = useT()
   const provider = getPaymentProvider(paymentMethod)
 
   return (
     <section className="space-y-3 rounded-card border border-border bg-card p-5 text-sm">
-      <h2 className="font-medium text-charcoal">Payment</h2>
+      <h2 className="font-medium text-charcoal">{t("order.payment.title")}</h2>
       <div className="flex justify-between">
-        <span className="text-muted-text">Method</span>
-        <span className="text-charcoal">{provider?.label ?? paymentMethod}</span>
+        <span className="text-muted-text">{t("order.payment.method")}</span>
+        <span className="text-charcoal">{provider ? t(provider.label) : paymentMethod}</span>
       </div>
       <div className="flex justify-between">
-        <span className="text-muted-text">Payment status</span>
-        <span className="text-charcoal">{PAYMENT_STATUS_LABELS[paymentStatus]}</span>
+        <span className="text-muted-text">{t("order.payment.status")}</span>
+        <span className="text-charcoal">{t(`order.paymentStatus.${paymentStatus}`)}</span>
       </div>
       <div className="space-y-1 border-t border-border pt-3">
         <div className="flex justify-between">
-          <span className="text-muted-text">Subtotal</span>
-          <span className="text-charcoal">{formatPrice(subtotal)}</span>
+          <span className="text-muted-text">{t("order.payment.subtotal")}</span>
+          <span className="text-charcoal">{formatPrice(subtotal, t)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between">
-            <span className="text-muted-text">Discount</span>
-            <span className="text-charcoal">-{formatPrice(discount)}</span>
+            <span className="text-muted-text">{t("order.payment.discount")}</span>
+            <span className="text-charcoal">-{formatPrice(discount, t)}</span>
           </div>
         )}
         <div className="flex justify-between">
-          <span className="text-muted-text">Delivery</span>
-          <span className="text-charcoal">{formatPrice(deliveryFee)}</span>
+          <span className="text-muted-text">{t("order.payment.delivery")}</span>
+          <span className="text-charcoal">{formatPrice(deliveryFee, t)}</span>
         </div>
         <div className="flex justify-between font-medium">
-          <span className="text-charcoal">Total</span>
-          <span className="text-charcoal">{formatPrice(total)}</span>
+          <span className="text-charcoal">{t("order.payment.total")}</span>
+          <span className="text-charcoal">{formatPrice(total, t)}</span>
         </div>
       </div>
     </section>

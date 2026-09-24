@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
+import { translate } from "@/lib/i18n/translate"
 
 // The signed-in user's address book (`addresses` table). RLS limits every
 // query here to the caller's own rows. The default-address rules (first
@@ -44,7 +45,7 @@ export async function fetchMyAddresses(userId: string): Promise<AddressRecord[]>
     .eq("user_id", userId)
     .order("created_at", { ascending: true })
 
-  if (error) throw new Error(`Failed to load addresses: ${error.message}`)
+  if (error) throw new Error(`Failed to load addresses: ${error.message}`) // i18n-ignore: developer-facing
   return (data as AddressRow[]).map(toRecord)
 }
 
@@ -52,7 +53,7 @@ export async function addAddress(userId: string, input: AddressInput): Promise<R
   const { error } = await createClient()
     .from("addresses")
     .insert({ ...toRow(input), user_id: userId })
-  return error ? { success: false, error: error.message } : { success: true }
+  return error ? { success: false, error: translate("common.somethingWentWrong") } : { success: true }
 }
 
 export async function updateAddress(id: string, input: AddressInput): Promise<Result> {
@@ -63,21 +64,21 @@ export async function updateAddress(id: string, input: AddressInput): Promise<Re
     .eq("id", id)
     .select("id")
 
-  if (error) return { success: false, error: error.message }
-  if (!data || data.length === 0) return { success: false, error: "Address not found." }
+  if (error) return { success: false, error: translate("common.somethingWentWrong") }
+  if (!data || data.length === 0) return { success: false, error: translate("account.addresses.notFound") }
   return { success: true }
 }
 
 export async function removeAddress(id: string): Promise<Result> {
   const { data, error } = await createClient().from("addresses").delete().eq("id", id).select("id")
 
-  if (error) return { success: false, error: error.message }
-  if (!data || data.length === 0) return { success: false, error: "Address not found." }
+  if (error) return { success: false, error: translate("common.somethingWentWrong") }
+  if (!data || data.length === 0) return { success: false, error: translate("account.addresses.notFound") }
   return { success: true }
 }
 
 // Atomic in the database: clears the old default and sets the new one.
 export async function setDefaultAddress(id: string): Promise<Result> {
   const { error } = await createClient().rpc("set_default_address", { p_address_id: id })
-  return error ? { success: false, error: error.message } : { success: true }
+  return error ? { success: false, error: translate("common.somethingWentWrong") } : { success: true }
 }

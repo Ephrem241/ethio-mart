@@ -4,6 +4,7 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { SlidersHorizontal } from "lucide-react"
 
+import { useT } from "@/lib/i18n/provider"
 import type { FilterFacets } from "@/lib/services/catalog"
 import { Button } from "@/components/ui/button"
 import {
@@ -34,22 +35,23 @@ function FilterDrawerBody({
   onApply: (next: FilterValues) => void
   onClear: () => void
 }) {
+  const t = useT()
   const [draft, setDraft] = React.useState<FilterValues>(filters)
 
   return (
     <>
       <SheetHeader>
-        <SheetTitle>Filters</SheetTitle>
+        <SheetTitle>{t("catalog.filters.title")}</SheetTitle>
       </SheetHeader>
       <div className="px-4">
         <FilterFields filters={draft} facets={facets} showCategory={showCategory} onChange={setDraft} />
       </div>
       <SheetFooter className="flex-row gap-2">
         <Button variant="outline" className="flex-1" onClick={onClear}>
-          Clear all
+          {t("catalog.filters.clearAll")}
         </Button>
         <Button className="flex-1" onClick={() => onApply(draft)}>
-          Apply
+          {t("catalog.filters.apply")}
         </Button>
       </SheetFooter>
     </>
@@ -69,6 +71,7 @@ function FilterDrawer({
   rawParams: RawParams
   basePath: string
 }) {
+  const t = useT()
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
 
@@ -87,7 +90,7 @@ function FilterDrawer({
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="gap-1.5">
           <SlidersHorizontal className="size-4" />
-          Filter
+          {t("catalog.filters.open")}
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-80 overflow-y-auto">

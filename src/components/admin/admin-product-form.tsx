@@ -6,6 +6,8 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 
+import { nameOf } from "@/lib/i18n/content"
+import { useT } from "@/lib/i18n/provider"
 import { useAdminCategories } from "@/lib/hooks/use-admin-data"
 import { createProduct, updateProduct } from "@/lib/services/admin-catalog"
 import { productSchema, type ProductValues } from "@/components/admin/product-schema"
@@ -44,6 +46,7 @@ function toDefaultValues(product?: Product): ProductValues {
 }
 
 function AdminProductForm({ product }: { product?: Product }) {
+  const t = useT()
   const router = useRouter()
   const { data: categories = [] } = useAdminCategories()
   const [slugTouched, setSlugTouched] = useState(!!product)
@@ -71,7 +74,7 @@ function AdminProductForm({ product }: { product?: Product }) {
       toast.error(result.error)
       return
     }
-    toast.success(product ? "Product updated." : "Product created.")
+    toast.success(product ? t("admin.products.updated") : t("admin.products.created"))
     router.push("/admin/products")
   }
 
@@ -80,13 +83,13 @@ function AdminProductForm({ product }: { product?: Product }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField
           id="name_en"
-          label="Name (English)"
+          label={t("admin.productForm.nameEn")}
           registration={register("name_en", { onChange: (e) => handleNameChange(e.target.value) })}
           error={errors.name_en?.message}
         />
         <FormField
           id="name_am"
-          label="Name (Amharic)"
+          label={t("admin.productForm.nameAm")}
           registration={register("name_am")}
           error={errors.name_am?.message}
         />
@@ -94,7 +97,7 @@ function AdminProductForm({ product }: { product?: Product }) {
 
       <FormField
         id="slug"
-        label="Slug"
+        label={t("admin.productForm.slug")}
         registration={register("slug", { onChange: () => setSlugTouched(true) })}
         error={errors.slug?.message}
       />
@@ -102,14 +105,14 @@ function AdminProductForm({ product }: { product?: Product }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <label htmlFor="description_en" className="text-sm font-medium text-charcoal">
-            Description (English)
+            {t("admin.productForm.descriptionEn")}
           </label>
           <Textarea id="description_en" {...register("description_en")} />
           {errors.description_en && <p className="text-xs text-error">{errors.description_en.message}</p>}
         </div>
         <div className="space-y-1.5">
           <label htmlFor="description_am" className="text-sm font-medium text-charcoal">
-            Description (Amharic)
+            {t("admin.productForm.descriptionAm")}
           </label>
           <Textarea id="description_am" {...register("description_am")} />
           {errors.description_am && <p className="text-xs text-error">{errors.description_am.message}</p>}
@@ -119,14 +122,14 @@ function AdminProductForm({ product }: { product?: Product }) {
       <div className="grid gap-4 sm:grid-cols-3">
         <FormField
           id="price"
-          label="Price (ETB)"
+          label={t("admin.productForm.price")}
           type="number"
           registration={register("price", { valueAsNumber: true })}
           error={errors.price?.message}
         />
         <FormField
           id="compare_at_price"
-          label="Compare-at price (optional)"
+          label={t("admin.productForm.compareAt")}
           type="number"
           registration={register("compare_at_price", {
             setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
@@ -135,7 +138,7 @@ function AdminProductForm({ product }: { product?: Product }) {
         />
         <FormField
           id="stock"
-          label="Stock"
+          label={t("admin.productForm.stock")}
           type="number"
           registration={register("stock", { valueAsNumber: true })}
           error={errors.stock?.message}
@@ -143,10 +146,10 @@ function AdminProductForm({ product }: { product?: Product }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField id="sku" label="SKU" registration={register("sku")} error={errors.sku?.message} />
+        <FormField id="sku" label={t("admin.productForm.sku")} registration={register("sku")} error={errors.sku?.message} />
         <div className="space-y-1.5">
           <label htmlFor="category_id" className="text-sm font-medium text-charcoal">
-            Category
+            {t("admin.productForm.category")}
           </label>
           <Controller
             name="category_id"
@@ -159,10 +162,10 @@ function AdminProductForm({ product }: { product?: Product }) {
                 aria-invalid={!!errors.category_id}
                 className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm text-charcoal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20"
               >
-                <option value="">Select a category</option>
+                <option value="">{t("admin.productForm.selectCategory")}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name_en}
+                    {nameOf(c, t.locale)}
                   </option>
                 ))}
               </select>
@@ -178,7 +181,7 @@ function AdminProductForm({ product }: { product?: Product }) {
         render={({ field }) => (
           <ImageUploadField
             id="image_url"
-            label="Product image"
+            label={t("admin.productForm.image")}
             bucket="products"
             value={field.value}
             onChange={field.onChange}
@@ -192,28 +195,28 @@ function AdminProductForm({ product }: { product?: Product }) {
           <Controller name="is_active" control={control} render={({ field }) => (
             <Switch checked={field.value} onCheckedChange={field.onChange} />
           )} />
-          Active
+          {t("admin.productForm.active")}
         </label>
         <label className="flex items-center gap-2 text-sm text-charcoal">
           <Controller name="is_featured" control={control} render={({ field }) => (
             <Switch checked={field.value} onCheckedChange={field.onChange} />
           )} />
-          Featured
+          {t("admin.productForm.featured")}
         </label>
         <label className="flex items-center gap-2 text-sm text-charcoal">
           <Controller name="is_popular" control={control} render={({ field }) => (
             <Switch checked={field.value} onCheckedChange={field.onChange} />
           )} />
-          Popular
+          {t("admin.productForm.popular")}
         </label>
       </div>
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={() => router.push("/admin/products")}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {product ? "Save changes" : "Create product"}
+          {product ? t("admin.productForm.save") : t("admin.productForm.create")}
         </Button>
       </div>
     </form>

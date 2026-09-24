@@ -2,6 +2,8 @@
 
 import { Minus, Plus } from "lucide-react"
 import { cn } from "cn"
+
+import { useT } from "@/lib/i18n/provider"
 import { Button } from "@/components/ui/button"
 
 function QuantitySelector({
@@ -17,21 +19,22 @@ function QuantitySelector({
   min?: number
   className?: string
 }) {
+  const t = useT()
   const clamp = (n: number) => Math.min(Math.max(n, min), Math.max(max, min))
 
   return (
-    <div className={cn("inline-flex items-center rounded-lg border border-input", className)}>
+    <div className={cn("inline-flex items-center rounded-xl border border-input bg-card", className)}>
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
         disabled={value <= min}
         onClick={() => onChange(clamp(value - 1))}
-        aria-label="Decrease quantity"
+        aria-label={t("product.quantity.decrease")}
       >
         <Minus />
       </Button>
-      <span className="w-8 text-center text-sm font-medium tabular-nums" aria-live="polite">
+      <span className="w-9 text-center text-sm font-medium tabular-nums" aria-live="polite">
         {value}
       </span>
       <Button
@@ -40,7 +43,7 @@ function QuantitySelector({
         size="icon-sm"
         disabled={value >= max}
         onClick={() => onChange(clamp(value + 1))}
-        aria-label="Increase quantity"
+        aria-label={t("product.quantity.increase")}
       >
         <Plus />
       </Button>

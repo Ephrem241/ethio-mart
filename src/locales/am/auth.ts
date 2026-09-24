@@ -1,0 +1,66 @@
+import type { Dictionary } from "@/locales/en"
+
+export const auth: Dictionary["auth"] = {
+  or: "ወይም",
+  fields: {
+    email: "ኢሜይል",
+    password: "የይለፍ ቃል",
+    fullName: "ሙሉ ስም",
+    newPassword: "አዲስ የይለፍ ቃል",
+  },
+  login: {
+    title: "እንኳን በደህና ተመለሱ",
+    description: "ወደ መለያዎ ይግቡ።",
+    submit: "ግባ",
+    noAccount: "መለያ የለዎትም?",
+    create: "መለያ ይፍጠሩ",
+    forgot: "የይለፍ ቃልዎን ረሱት?",
+    oauthFailed: "በGoogle መግባት አልተጠናቀቀም። እባክዎ እንደገና ይሞክሩ፣ ወይም በኢሜይልዎ ይግቡ።",
+    welcome: "እንኳን ደህና መጡ፣ {name}።",
+  },
+  register: {
+    title: "መለያዎን ይፍጠሩ",
+    description: "ክፍያን ለማፋጠን {brand}ን ይቀላቀሉ።",
+    haveAccount: "መለያ አለዎት?",
+    login: "ይግቡ",
+    submit: "መለያ ፍጠር",
+    created: "መለያ ተፈጥሯል — እንኳን ደህና መጡ!",
+  },
+  google: {
+    continue: "በGoogle ቀጥል",
+    signUp: "በGoogle ተመዝገብ",
+    redirecting: "ወደ Google በመሄድ ላይ...",
+  },
+  forgot: {
+    title: "የይለፍ ቃልዎን ዳግም ያስጀምሩ",
+    description: "ኢሜይልዎን ያስገቡ፤ የማስጀመሪያ አገናኝ እንልክልዎታለን።",
+    remembered: "አስታወሱት?",
+    login: "ይግቡ",
+    sent: "ለዚያ ኢሜይል መለያ ካለ፣ የይለፍ ቃልዎን ለማስጀመር አገናኝ ልከናል። የገቢ መልዕክት ሳጥንዎን ይመልከቱ።",
+    expired: "ያ የማስጀመሪያ አገናኝ ትክክል አይደለም ወይም ጊዜው አልፎበታል። ከታች አዲስ ይጠይቁ።",
+    send: "የማስጀመሪያ አገናኝ ላክ",
+  },
+  reset: {
+    title: "አዲስ የይለፍ ቃል ይምረጡ",
+    linkNotWorking: "አገናኙ አይሰራም?",
+    requestNew: "አዲስ ይጠይቁ",
+    update: "የይለፍ ቃል አዘምን",
+    updated: "የይለፍ ቃል ተዘምኗል።",
+    invalidLink: "ይህ የማስጀመሪያ አገናኝ ትክክል አይደለም ወይም ጊዜው አልፎበታል። አዲስ ይጠይቁ።",
+  },
+  validation: {
+    passwordRequired: "የይለፍ ቃልዎን ያስገቡ።",
+    passwordMin: "ቢያንስ 8 ቁምፊዎችን ይጠቀሙ።",
+    fullName: "ሙሉ ስምዎን ያስገቡ።",
+  },
+  errors: {
+    alreadyExists: "በዚህ ኢሜይል መለያ አስቀድሞ አለ።",
+    confirmEmail: "መለያዎን ለማረጋገጥ ኢሜይልዎን ይመልከቱ፣ ከዚያ ይግቡ።",
+    invalidCredentials: "ኢሜይል ወይም የይለፍ ቃል ትክክል አይደለም።",
+    accountNotFound: "መለያው አልተገኘም።",
+    wrongCurrent: "አሁን ያለው የይለፍ ቃል ትክክል አይደለም።",
+    weakPassword: "ይህ የይለፍ ቃል ደካማ ነው። ረዘም ያለ ወይም ያልተለመደ ይምረጡ።",
+    samePassword: "ከአሁኑ የተለየ የይለፍ ቃል ይምረጡ።",
+    tooManyRequests: "ብዙ ሙከራዎች ተደርገዋል። እባክዎ ትንሽ ቆይተው እንደገና ይሞክሩ።",
+  },
+}

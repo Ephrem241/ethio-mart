@@ -2,58 +2,26 @@
 
 import { useEffect } from "react"
 
-import { createClient } from "@/lib/supabase/client"
 import { useAuthStore } from "@/lib/store/auth"
-import { fetchAuthUser } from "@/lib/services/auth"
-import { syncGuestDataOnLogin, clearLocalUserData } from "@/lib/services/guest-sync"
 
-// Mounted once in the root layout. Turns the REAL Supabase session (cookie)
-// into the client-side auth store every component reads, and reacts when it
-// changes — sign-in, sign-out, token refresh, another tab, session expiry.
-// Renders nothing.
+// Supabase keeps the session in a cookie called sb-<project>-auth-token (long
+// sessions are split into .0/.1 pieces). It is readable by script.
+const SESSION_COOKIE = /(?:^|;\s*)sb-[^=;]*-auth-token/
+
+// Mounted once in the root layout; renders nothing.
+//
+// A visitor with no session cookie is signed out — there is nothing to read,
+// so the (large) Supabase client is not loaded at all and the page stays
+// light. With a session cookie, the listener that keeps the auth store in
+// step with the real session is loaded and started. Signing in or registering
+// starts the same listener (services/auth.ts).
 function AuthProvider() {
   useEffect(() => {
-    const supabase = createClient()
-    let cancelled = false
-    let syncedUserId: string | null = null
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      // Never await other Supabase calls directly inside this callback — the
-      // client holds an internal lock while it runs, and a query made from
-      // inside it can deadlock. Deferring by a tick is the documented fix.
-      setTimeout(async () => {
-        const { _setUser, _setHasHydrated } = useAuthStore.getState()
-
-        if (!session) {
-          if (event === "SIGNED_OUT") {
-            syncedUserId = null
-            clearLocalUserData()
-          }
-          _setUser(null)
-          _setHasHydrated(true)
-          return
-        }
-
-        const user = await fetchAuthUser(supabase, session.user)
-        if (cancelled) return
-        _setUser(user)
-        _setHasHydrated(true)
-
-        // Supabase can re-emit SIGNED_IN for the same person (e.g. tab
-        // refocus); only sync when the signed-in user actually changes.
-        if (syncedUserId !== user.id) {
-          syncedUserId = user.id
-          await syncGuestDataOnLogin(user.id)
-        }
-      }, 0)
-    })
-
-    return () => {
-      cancelled = true
-      subscription.unsubscribe()
+    if (!SESSION_COOKIE.test(document.cookie)) {
+      useAuthStore.getState()._setHasHydrated(true)
+      return
     }
+    void import("@/lib/services/auth-listener").then((m) => m.ensureAuthListener())
   }, [])
 
   return null

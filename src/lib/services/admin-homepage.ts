@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
+import { translate } from "@/lib/i18n/translate"
 import {
   settingsFromSections,
   sectionsFromSettings,
@@ -11,7 +12,7 @@ import {
 
 export async function fetchHomepageSettings(): Promise<HomepageSettings> {
   const { data, error } = await createClient().from("homepage_sections").select("section_key, content")
-  if (error) throw new Error(`Failed to load homepage settings: ${error.message}`)
+  if (error) throw new Error(`Failed to load homepage settings: ${error.message}`) // i18n-ignore: developer-facing
   return settingsFromSections((data ?? []) as HomepageSectionRow[])
 }
 
@@ -29,9 +30,9 @@ export async function updateHomepageSettings(
       .eq("section_key", row.section_key)
       .select("section_key")
 
-    if (error) return { success: false, error: error.message }
+    if (error) return { success: false, error: translate("common.somethingWentWrong") }
     if (!data || data.length === 0) {
-      return { success: false, error: "You don't have permission to edit the homepage." }
+      return { success: false, error: translate("admin.homepage.noPermission") }
     }
   }
   return { success: true }

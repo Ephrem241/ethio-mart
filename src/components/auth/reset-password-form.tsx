@@ -3,20 +3,25 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+
+import "@/lib/i18n/zod" // translated fallbacks for zod's default messages
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
+import { useT } from "@/lib/i18n/provider"
+import { translate } from "@/lib/i18n/translate"
 import { setNewPassword } from "@/lib/services/auth"
 import { FormField } from "@/components/forms/form-field"
 import { Button } from "@/components/ui/button"
 
 const resetPasswordSchema = z.object({
-  newPassword: z.string().min(8, "Use at least 8 characters."),
+  newPassword: z.string().min(8, { error: () => translate("auth.validation.passwordMin") }),
 })
 
 type ResetPasswordValues = z.infer<typeof resetPasswordSchema>
 
 function ResetPasswordForm() {
+  const t = useT()
   const router = useRouter()
   const {
     register,
@@ -28,30 +33,25 @@ function ResetPasswordForm() {
   async function onSubmit(values: ResetPasswordValues) {
     const result = await setNewPassword(values.newPassword)
     if (!result.success) {
-      // Opening this page directly (no emailed link) means there is no
-      // recovery session, which the auth server reports as a missing session.
-      const message = /session/i.test(result.error)
-        ? "This reset link is invalid or has expired. Request a new one."
-        : result.error
-      setError("newPassword", { message })
+      setError("newPassword", { message: result.error })
       return
     }
-    toast.success("Password updated.")
+    toast.success(t("auth.reset.updated"))
     router.push("/account")
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="newPassword"
-        label="New password"
+        label={t("auth.fields.newPassword")}
         type="password"
         autoComplete="new-password"
         registration={register("newPassword")}
         error={errors.newPassword?.message}
       />
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        Update password
+        {t("auth.reset.update")}
       </Button>
     </form>
   )

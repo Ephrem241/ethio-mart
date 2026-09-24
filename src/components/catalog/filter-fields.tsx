@@ -1,7 +1,9 @@
 "use client"
 
+import { nameOf } from "@/lib/i18n/content"
+import { useT } from "@/lib/i18n/provider"
 import type { FilterFacets } from "@/lib/services/catalog"
-import { RATING_THRESHOLDS } from "@/lib/services/catalog"
+import { RATING_THRESHOLDS, priceBucketLabel } from "@/lib/services/catalog"
 import type { FilterValues } from "@/components/catalog/listing-url"
 
 function FilterFields({
@@ -15,20 +17,22 @@ function FilterFields({
   showCategory?: boolean
   onChange: (next: FilterValues) => void
 }) {
+  const t = useT()
+
   return (
     <div className="space-y-6">
       {showCategory && (
         <fieldset className="space-y-2">
-          <legend className="mb-2 text-sm font-medium text-charcoal">Category</legend>
+          <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.category")}</legend>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-text">
             <input
               type="radio"
               name="category"
-              className="accent-burgundy"
+              className="accent-forest"
               checked={!filters.categorySlug}
               onChange={() => onChange({ ...filters, categorySlug: undefined })}
             />
-            All categories
+            {t("catalog.filters.allCategories")}
           </label>
           {facets.categories.map((c) => (
             <label
@@ -39,11 +43,11 @@ function FilterFields({
                 <input
                   type="radio"
                   name="category"
-                  className="accent-burgundy"
+                  className="accent-forest"
                   checked={filters.categorySlug === c.slug}
                   onChange={() => onChange({ ...filters, categorySlug: c.slug })}
                 />
-                {c.name}
+                {nameOf({ name_en: c.name, name_am: c.nameAm }, t.locale)}
               </span>
               <span className="text-xs">{c.count}</span>
             </label>
@@ -52,16 +56,16 @@ function FilterFields({
       )}
 
       <fieldset className="space-y-2">
-        <legend className="mb-2 text-sm font-medium text-charcoal">Price</legend>
+        <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.price")}</legend>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-text">
           <input
             type="radio"
             name="price"
-            className="accent-burgundy"
+            className="accent-forest"
             checked={!filters.priceBucket}
             onChange={() => onChange({ ...filters, priceBucket: undefined })}
           />
-          Any price
+          {t("catalog.filters.anyPrice")}
         </label>
         {facets.priceBuckets.map((b) => (
           <label
@@ -72,11 +76,11 @@ function FilterFields({
               <input
                 type="radio"
                 name="price"
-                className="accent-burgundy"
+                className="accent-forest"
                 checked={filters.priceBucket === b.id}
                 onChange={() => onChange({ ...filters, priceBucket: b.id })}
               />
-              {b.label}
+              {priceBucketLabel(b.id, t)}
             </span>
             <span className="text-xs">{b.count}</span>
           </label>
@@ -84,32 +88,32 @@ function FilterFields({
       </fieldset>
 
       <fieldset className="space-y-2">
-        <legend className="mb-2 text-sm font-medium text-charcoal">Availability</legend>
+        <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.availability")}</legend>
         <label className="flex cursor-pointer items-center justify-between gap-2 text-sm text-muted-text">
           <span className="flex items-center gap-2">
             <input
               type="checkbox"
-              className="accent-burgundy"
+              className="accent-forest"
               checked={!!filters.inStockOnly}
               onChange={(e) => onChange({ ...filters, inStockOnly: e.target.checked })}
             />
-            In stock only
+            {t("catalog.filters.inStockOnly")}
           </span>
           <span className="text-xs">{facets.inStockCount}</span>
         </label>
       </fieldset>
 
       <fieldset className="space-y-2">
-        <legend className="mb-2 text-sm font-medium text-charcoal">Rating</legend>
+        <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.rating")}</legend>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-text">
           <input
             type="radio"
             name="rating"
-            className="accent-burgundy"
+            className="accent-forest"
             checked={filters.minRating == null}
             onChange={() => onChange({ ...filters, minRating: undefined })}
           />
-          Any rating
+          {t("catalog.filters.anyRating")}
         </label>
         {RATING_THRESHOLDS.map((min) => {
           const facet = facets.ratingCounts.find((r) => r.min === min)
@@ -122,11 +126,11 @@ function FilterFields({
                 <input
                   type="radio"
                   name="rating"
-                  className="accent-burgundy"
+                  className="accent-forest"
                   checked={filters.minRating === min}
                   onChange={() => onChange({ ...filters, minRating: min })}
                 />
-                {min}★ &amp; up
+                {t("catalog.filters.ratingUp", { min })}
               </span>
               <span className="text-xs">{facet?.count ?? 0}</span>
             </label>
@@ -135,16 +139,16 @@ function FilterFields({
       </fieldset>
 
       <fieldset className="space-y-2">
-        <legend className="mb-2 text-sm font-medium text-charcoal">Discount</legend>
+        <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.discount")}</legend>
         <label className="flex cursor-pointer items-center justify-between gap-2 text-sm text-muted-text">
           <span className="flex items-center gap-2">
             <input
               type="checkbox"
-              className="accent-burgundy"
+              className="accent-forest"
               checked={!!filters.onSaleOnly}
               onChange={(e) => onChange({ ...filters, onSaleOnly: e.target.checked })}
             />
-            On sale
+            {t("catalog.filters.onSale")}
           </span>
           <span className="text-xs">{facets.onSaleCount}</span>
         </label>

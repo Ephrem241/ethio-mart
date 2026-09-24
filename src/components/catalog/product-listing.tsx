@@ -1,5 +1,6 @@
 import { PackageSearch } from "lucide-react"
 
+import { getT } from "@/lib/i18n/server"
 import type { ProductWithCategory, FilterFacets, SortOption } from "@/lib/services/catalog"
 import { ProductGrid } from "@/components/product/product-grid"
 import { EmptyState } from "@/components/feedback/empty-state"
@@ -13,7 +14,7 @@ import type { FilterValues, RawParams } from "@/components/catalog/listing-url"
 // header above this (breadcrumb/banner/title differ too much to force into
 // one slot API, Rule 6) and fetches its own data, but the filter/sort/grid/
 // pagination chrome below is identical everywhere (Rule 5).
-function ProductListing({
+async function ProductListing({
   products,
   total,
   page,
@@ -38,10 +39,13 @@ function ProductListing({
   rawParams: RawParams
   basePath: string
 }) {
+  const t = await getT()
   const rangeStart = total === 0 ? 0 : (page - 1) * pageSize + 1
   const rangeEnd = Math.min(page * pageSize, total)
   const resultSummary =
-    total === 0 ? "No results" : `Showing ${rangeStart}–${rangeEnd} of ${total} results`
+    total === 0
+      ? t("catalog.noResults")
+      : t("catalog.results", { start: rangeStart, end: rangeEnd, total })
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-10">
@@ -74,11 +78,11 @@ function ProductListing({
         {products.length === 0 ? (
           <EmptyState
             icon={PackageSearch}
-            title="No products found."
-            description="Try another search or explore our categories."
+            title={t("catalog.emptyTitle")}
+            description={t("catalog.emptyText")}
           />
         ) : (
-          <ProductGrid products={products} />
+          <ProductGrid products={products} eagerCount={4} />
         )}
 
         <Pagination page={page} totalPages={totalPages} rawParams={rawParams} basePath={basePath} />

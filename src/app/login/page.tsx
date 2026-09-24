@@ -1,10 +1,20 @@
+import type { Metadata } from "next"
+
+import { privateMetadata } from "@/lib/seo/metadata"
 import Link from "next/link"
 
 import { getSafeRedirect } from "@/lib/safe-redirect"
+import { getT } from "@/lib/i18n/server"
 import { AuthCard } from "@/components/auth/auth-card"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { GoogleButton } from "@/components/auth/google-button"
 import { LoginForm } from "@/components/auth/login-form"
+
+// Not for search results: it belongs to one visitor (see privateMetadata).
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getT()
+  return privateMetadata(t("auth.login.submit"))
+}
 
 export default async function LoginPage({
   searchParams,
@@ -13,25 +23,26 @@ export default async function LoginPage({
 }) {
   const params = await searchParams
   const redirectTo = getSafeRedirect(params.redirect, "/account")
+  const t = await getT()
 
   return (
     <AuthCard
-      title="Welcome back"
-      description="Log in to your account."
+      title={t("auth.login.title")}
+      description={t("auth.login.description")}
       footer={
         <>
           <p>
-            Don&apos;t have an account?{" "}
+            {t("auth.login.noAccount")}{" "}
             <Link
               href={`/register?redirect=${encodeURIComponent(redirectTo)}`}
-              className="text-burgundy hover:underline"
+              className="text-forest hover:underline"
             >
-              Create one
+              {t("auth.login.create")}
             </Link>
           </p>
           <p>
-            <Link href="/forgot-password" className="text-burgundy hover:underline">
-              Forgot your password?
+            <Link href="/forgot-password" className="text-forest hover:underline">
+              {t("auth.login.forgot")}
             </Link>
           </p>
         </>
@@ -40,7 +51,7 @@ export default async function LoginPage({
       <div className="space-y-4">
         {params.error === "oauth" && (
           <p className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
-            Google sign-in didn&apos;t complete. Please try again, or log in with your email.
+            {t("auth.login.oauthFailed")}
           </p>
         )}
         <GoogleButton redirectTo={redirectTo} />

@@ -1,5 +1,7 @@
 import type { Product } from "@/lib/data/products"
 import type { Category } from "@/lib/data/categories"
+import type { Translator } from "@/lib/i18n/translator"
+import { formatNumber, formatPrice } from "@/lib/currency"
 
 // PURE catalog logic: types, row mappers, and filter/sort/facet functions
 // that operate on arrays they are handed. No data access lives here, so
@@ -9,6 +11,7 @@ import type { Category } from "@/lib/data/categories"
 
 export type ProductWithCategory = Product & {
   categoryName: string
+  categoryNameAm: string
   categorySlug: string
 }
 
@@ -24,15 +27,20 @@ export type CategoryWithCount = Category & {
 // nests the product's images; flatten to the single `image_url` the UI has
 // always consumed (first image by sort_order), so ProductCard,
 // ImagePlaceholder and the admin form needed no changes for real images.
-export interface ProductRow extends Omit<Product, "rating" | "image_url"> {
+export interface ProductRow extends Omit<Product, "rating" | "image_url" | "image_urls"> {
   rating: number | null
   product_images?: { image_url: string; sort_order: number }[] | null
 }
 
 export function toProduct(row: ProductRow): Product {
   const { product_images, rating, ...rest } = row
-  const primary = [...(product_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)[0]
-  return { ...rest, rating: rating ?? undefined, image_url: primary?.image_url ?? null }
+  const images = [...(product_images ?? [])].sort((a, b) => a.sort_order - b.sort_order)
+  return {
+    ...rest,
+    rating: rating ?? undefined,
+    image_url: images[0]?.image_url ?? null,
+    image_urls: images.map((image) => image.image_url),
+  }
 }
 
 export function withCategory(product: Product, categories: Category[]): ProductWithCategory {
@@ -40,6 +48,7 @@ export function withCategory(product: Product, categories: Category[]): ProductW
   return {
     ...product,
     categoryName: category?.name_en ?? "",
+    categoryNameAm: category?.name_am ?? "",
     categorySlug: category?.slug ?? "",
   }
 }
@@ -48,10 +57,10 @@ export function isOnSale(product: Product): boolean {
   return product.compare_at_price != null && product.compare_at_price > product.price
 }
 
-export function getStockStatus(stock: number): { label: string; className: string } {
-  if (stock <= 0) return { label: "Out of stock", className: "text-error" }
-  if (stock <= 5) return { label: `Only ${stock} left in stock`, className: "text-warning" }
-  return { label: "In stock", className: "text-success" }
+export function getStockStatus(stock: number, t: Translator): { label: string; className: string } {
+  if (stock <= 0) return { label: t("product.stock.out"), className: "text-error" }
+  if (stock <= 5) return { label: t("product.stock.low", { count: stock }), className: "text-warning" }
+  return { label: t("product.stock.in"), className: "text-success" }
 }
 
 // ---------------------------------------------------------------------------
@@ -97,14 +106,23 @@ export function pickFlashDeals(products: Product[], categories: Category[], limi
 // ---------------------------------------------------------------------------
 
 export const PRICE_BUCKETS = [
-  { id: "under-500", label: "Under 500 ETB", min: 0, max: 500 },
-  { id: "500-1000", label: "500 – 1,000 ETB", min: 500, max: 1000 },
-  { id: "1000-2000", label: "1,000 – 2,000 ETB", min: 1000, max: 2000 },
-  { id: "2000-plus", label: "2,000 ETB & above", min: 2000, max: Infinity },
+  { id: "under-500", min: 0, max: 500 },
+  { id: "500-1000", min: 500, max: 1000 },
+  { id: "1000-2000", min: 1000, max: 2000 },
+  { id: "2000-plus", min: 2000, max: Infinity },
 ] as const
 
 export type PriceBucketId = (typeof PRICE_BUCKETS)[number]["id"]
 const PRICE_BUCKET_IDS = PRICE_BUCKETS.map((b) => b.id) as PriceBucketId[]
+
+// "Under 500 ETB" / "500 – 1,000 ETB" / "2,000 ETB & above" — assembled from
+// the bucket's bounds so the wording (and the currency) follow the language.
+export function priceBucketLabel(id: PriceBucketId, t: Translator): string {
+  const bucket = PRICE_BUCKETS.find((b) => b.id === id)!
+  if (bucket.min === 0) return t("catalog.filters.priceUnder", { amount: formatPrice(bucket.max, t) })
+  if (bucket.max === Infinity) return t("catalog.filters.priceOver", { amount: formatPrice(bucket.min, t) })
+  return t("catalog.filters.priceRange", { min: formatNumber(bucket.min), max: formatPrice(bucket.max, t) })
+}
 
 // Seed ratings cluster between 4.0 and 4.8, so a single "4 stars & up"
 // threshold would barely filter anything. Two thresholds make the filter
@@ -135,15 +153,22 @@ export interface ProductListResult {
 }
 
 export interface FilterFacets {
-  categories: { slug: string; name: string; count: number }[]
-  priceBuckets: { id: PriceBucketId; label: string; count: number }[]
+  categories: { slug: string; name: string; nameAm: string; count: number }[]
+  priceBuckets: { id: PriceBucketId; count: number }[]
   inStockCount: number
   onSaleCount: number
   ratingCounts: { min: number; count: number }[]
 }
 
+// Matches either language, whichever the page is shown in: an Amharic
+// shopper can type Amharic, an English one English. (Amharic has no letter
+// case, so lower-casing is a no-op there.)
 function matchesQuery(product: Product, query: string): boolean {
-  return product.name_en.toLowerCase().includes(query.trim().toLowerCase())
+  const needle = query.trim().toLowerCase()
+  return (
+    product.name_en.toLowerCase().includes(needle) ||
+    (product.name_am ?? "").toLowerCase().includes(needle)
+  )
 }
 
 // Applies every filter EXCEPT pagination/sort. Shared by listProducts (full
@@ -243,11 +268,11 @@ export function computeFilterFacets(
       .map((c) => ({
         slug: c.slug,
         name: c.name_en,
+        nameAm: c.name_am,
         count: base.filter((p) => p.category_id === c.id).length,
       })),
     priceBuckets: PRICE_BUCKETS.map((b) => ({
       id: b.id,
-      label: b.label,
       count: base.filter((p) => p.price >= b.min && p.price < b.max).length,
     })),
     inStockCount: base.filter((p) => p.stock > 0).length,

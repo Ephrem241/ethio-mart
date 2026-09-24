@@ -5,13 +5,19 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
+    --font-heading: var(--font-sans), var(--font-amharic);
+    --font-sans: var(--font-sans), var(--font-amharic);
     --font-amharic: var(--font-amharic);
-    --color-burgundy: var(--color-burgundy);
-    --color-burgundy-dark: var(--color-burgundy-dark);
+    /* Editorial serif for storefront headings. Latin glyphs come from the
+       first family; Amharic falls through to the (single) Ethiopic font, which
+       the headings' semibold weight suits well. */
+    --font-display: var(--font-display-latin), var(--font-amharic), Georgia, serif;
+    --color-forest: var(--color-forest);
+    --color-forest-dark: var(--color-forest-dark);
     --color-ivory: var(--color-ivory);
+    --color-cream: var(--color-cream);
     --color-sand: var(--color-sand);
+    --color-gold: var(--color-gold);
     --color-charcoal: var(--color-charcoal);
     --color-muted-text: var(--color-muted-text);
     --color-success: var(--color-success);
@@ -19,6 +25,9 @@
     --color-error: var(--color-error);
     --radius-card: 1.25rem;
     --radius-image: 1.125rem;
+    --radius-hero: 1.75rem;
+    --shadow-soft: 0 1px 2px rgb(23 23 23 / 0.04), 0 10px 28px -12px rgb(23 23 23 / 0.14);
+    --shadow-lift: 0 2px 4px rgb(23 23 23 / 0.05), 0 18px 40px -16px rgb(23 23 23 / 0.22);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -60,13 +69,18 @@
 }
 
 :root {
-    /* raw brand palette (spec section 5) */
-    --color-burgundy: #6E2434;
-    --color-burgundy-dark: #511A27;
-    --color-ivory: #FAF7F2;
-    --color-sand: #E8D9CB;
-    --color-charcoal: #292124;
-    --color-muted-text: #71696B;
+    /* Ethio Mart brand palette. Forest is the brand colour; ivory is the
+       dominant surface; cream and sand are secondary surfaces; gold is a
+       small accent — it is used on dark forest surfaces and for star ratings,
+       never as text on ivory (too little contrast). */
+    --color-forest: #123C35;
+    --color-forest-dark: #092A25;
+    --color-ivory: #FAF7F0;
+    --color-cream: #F3ECE2;
+    --color-sand: #E3D2BD;
+    --color-gold: #C9A15B;
+    --color-charcoal: #171717;
+    --color-muted-text: #706B64;
     --color-success: #267A55;
     --color-warning: #B7791F;
     --color-error: #B42318;
@@ -78,18 +92,18 @@
     --card-foreground: var(--color-charcoal);
     --popover: #FFFFFF;
     --popover-foreground: var(--color-charcoal);
-    --primary: var(--color-burgundy);
+    --primary: var(--color-forest);
     --primary-foreground: #FFFFFF;
-    --secondary: var(--color-sand);
+    --secondary: var(--color-cream);
     --secondary-foreground: var(--color-charcoal);
-    --muted: var(--color-sand);
+    --muted: var(--color-cream);
     --muted-foreground: var(--color-muted-text);
-    --accent: var(--color-sand);
+    --accent: var(--color-cream);
     --accent-foreground: var(--color-charcoal);
     --destructive: var(--color-error);
-    --border: #E7E0DA;
-    --input: #E7E0DA;
-    --ring: var(--color-burgundy);
+    --border: #E5DED4;
+    --input: #E5DED4;
+    --ring: var(--color-forest);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -98,12 +112,12 @@
     --radius: 0.875rem;
     --sidebar: #FFFFFF;
     --sidebar-foreground: var(--color-charcoal);
-    --sidebar-primary: var(--color-burgundy);
+    --sidebar-primary: var(--color-forest);
     --sidebar-primary-foreground: #FFFFFF;
-    --sidebar-accent: var(--color-sand);
+    --sidebar-accent: var(--color-cream);
     --sidebar-accent-foreground: var(--color-charcoal);
-    --sidebar-border: #E7E0DA;
-    --sidebar-ring: var(--color-burgundy);
+    --sidebar-border: #E5DED4;
+    --sidebar-ring: var(--color-forest);
 }
 
 .dark {
@@ -150,4 +164,34 @@
   html {
     @apply font-sans;
     }
+}
+
+/* The language switcher's "አማ" / "አማርኛ" label is Ethiopic text on every page,
+   English ones included. Set in the web font it would make each English page
+   download ~190KB for two words, so it uses the system's own Ethiopic fonts
+   (Nyala on Windows, Kefa on Apple devices, Noto on Android) instead. */
+@utility font-ethiopic-system {
+  font-family: "Nyala", "Kefa", "Abyssinica SIL", "Noto Sans Ethiopic", sans-serif;
+}
+
+/* Horizontal carousels (new arrivals, mobile product rails) scroll and snap
+   without a visible scrollbar. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Motion is decoration here: anyone who asks their system for less of it gets
+   none. Framer Motion is switched off separately (MotionConfig in the layout). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

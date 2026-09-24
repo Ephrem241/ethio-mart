@@ -1,9 +1,12 @@
 "use client"
 
+import { TableSkeleton } from "@/components/feedback/skeletons"
 import { useState } from "react"
 import { toast } from "sonner"
 import { ArrowDown, ArrowUp, FolderTree, Pencil, Trash2 } from "lucide-react"
 
+import { nameOf } from "@/lib/i18n/content"
+import { useT } from "@/lib/i18n/provider"
 import { useAdminCategories, useAdminProducts } from "@/lib/hooks/use-admin-data"
 import {
   createCategory,
@@ -33,16 +36,17 @@ function toFormValues(category: Category): CategoryValues {
 }
 
 function AdminCategoriesContent() {
+  const t = useT()
   const { data: categories, loading: categoriesLoading, reload } = useAdminCategories()
   const { data: products, loading: productsLoading } = useAdminProducts()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  if (categoriesLoading || productsLoading) return null
+  if (categoriesLoading || productsLoading) return <TableSkeleton columns={6} />
 
   if (!categories || !products) {
-    return <p className="text-sm text-error">We couldn&apos;t load categories. Please refresh the page.</p>
+    return <p className="text-sm text-error">{t("admin.loadFailed.categories")}</p>
   }
 
   const sorted = [...categories].sort((a, b) => a.sort_order - b.sort_order)
@@ -64,7 +68,7 @@ function AdminCategoriesContent() {
       toast.error(result.error)
       return
     }
-    toast.success(editingId ? "Category updated." : "Category created.")
+    toast.success(editingId ? t("admin.categories.updated") : t("admin.categories.created"))
     setDialogOpen(false)
     reload()
   }
@@ -75,7 +79,7 @@ function AdminCategoriesContent() {
       toast.error(result.error)
       return
     }
-    toast.success("Category removed.")
+    toast.success(t("admin.categories.removed"))
     reload()
   }
 
@@ -96,20 +100,24 @@ function AdminCategoriesContent() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={openAdd}>Add category</Button>
+        <Button onClick={openAdd}>{t("admin.categories.add")}</Button>
       </div>
 
       {sorted.length === 0 ? (
-        <EmptyState icon={FolderTree} title="No categories yet." action={<Button onClick={openAdd}>Add category</Button>} />
+        <EmptyState
+          icon={FolderTree}
+          title={t("admin.categories.empty")}
+          action={<Button onClick={openAdd}>{t("admin.categories.add")}</Button>}
+        />
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Order</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Products</TableHead>
-              <TableHead>Active</TableHead>
+              <TableHead>{t("admin.categories.columns.order")}</TableHead>
+              <TableHead>{t("admin.categories.columns.category")}</TableHead>
+              <TableHead>{t("admin.categories.columns.slug")}</TableHead>
+              <TableHead>{t("admin.categories.columns.products")}</TableHead>
+              <TableHead>{t("admin.categories.columns.active")}</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -120,7 +128,7 @@ function AdminCategoriesContent() {
                   <div className="flex flex-col">
                     <button
                       type="button"
-                      aria-label="Move up"
+                      aria-label={t("admin.categories.moveUp")}
                       disabled={index === 0}
                       onClick={() => handleMove(category.id, "up")}
                       className="disabled:opacity-30"
@@ -129,7 +137,7 @@ function AdminCategoriesContent() {
                     </button>
                     <button
                       type="button"
-                      aria-label="Move down"
+                      aria-label={t("admin.categories.moveDown")}
                       disabled={index === sorted.length - 1}
                       onClick={() => handleMove(category.id, "down")}
                       className="disabled:opacity-30"
@@ -138,25 +146,25 @@ function AdminCategoriesContent() {
                     </button>
                   </div>
                 </TableCell>
-                <TableCell className="font-medium">{category.name_en}</TableCell>
+                <TableCell className="font-medium">{nameOf(category, t.locale)}</TableCell>
                 <TableCell className="whitespace-nowrap text-muted-text">{category.slug}</TableCell>
                 <TableCell>{products.filter((p) => p.category_id === category.id).length}</TableCell>
                 <TableCell>
                   <Switch
                     checked={category.is_active}
                     onCheckedChange={(checked) => handleToggleActive(category.id, checked)}
-                    aria-label="Toggle active"
+                    aria-label={t("admin.categories.toggleActive")}
                   />
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon-sm" aria-label="Edit category" onClick={() => openEdit(category.id)}>
+                    <Button variant="ghost" size="icon-sm" aria-label={t("admin.categories.edit")} onClick={() => openEdit(category.id)}>
                       <Pencil className="size-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Delete category"
+                      aria-label={t("admin.categories.delete")}
                       onClick={() => handleDelete(category.id)}
                     >
                       <Trash2 className="size-4" />
@@ -172,7 +180,7 @@ function AdminCategoriesContent() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit category" : "Add category"}</DialogTitle>
+            <DialogTitle>{editingId ? t("admin.categories.dialogEdit") : t("admin.categories.dialogAdd")}</DialogTitle>
           </DialogHeader>
           <CategoryForm
             initialValues={editingCategory ? toFormValues(editingCategory) : undefined}

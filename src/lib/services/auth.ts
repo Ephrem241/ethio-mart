@@ -7,6 +7,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js"
 
 import { createClient } from "@/lib/supabase/client"
+import { translate } from "@/lib/i18n/translate"
 import { useAuthStore, type AuthUser, type Role } from "@/lib/store/auth"
 
 interface ProfileRow {
@@ -16,6 +17,38 @@ interface ProfileRow {
   phone: string | null
   role: Role
   created_at: string
+}
+
+// Supabase Auth reports failures as a machine-readable `code` plus English
+// text. Known codes get a translated message; anything else becomes a generic
+// one rather than leaking raw English into an Amharic page.
+function authErrorMessage(error: { code?: string; message: string }): string {
+  switch (error.code) {
+    case "user_already_exists":
+    case "email_exists":
+      return translate("auth.errors.alreadyExists")
+    case "invalid_credentials":
+      return translate("auth.errors.invalidCredentials")
+    case "weak_password":
+      return translate("auth.errors.weakPassword")
+    case "same_password":
+      return translate("auth.errors.samePassword")
+    case "over_request_rate_limit":
+    case "over_email_send_rate_limit":
+      return translate("auth.errors.tooManyRequests")
+    case "email_address_invalid":
+    case "validation_failed":
+      return translate("validation.email")
+    case "session_not_found":
+    case "session_expired":
+    case "refresh_token_not_found":
+      // Opening the reset page directly (no emailed link) means there is no
+      // recovery session, which the auth server reports as a missing session.
+      return translate("auth.reset.invalidLink")
+  }
+  if (/already registered/i.test(error.message)) return translate("auth.errors.alreadyExists")
+  if (/session/i.test(error.message)) return translate("auth.reset.invalidLink")
+  return translate("common.somethingWentWrong")
 }
 
 function toAuthUser(row: ProfileRow, hasPassword: boolean): AuthUser {
@@ -62,6 +95,10 @@ function setSignedInUser(user: AuthUser) {
   const { _setUser, _setHasHydrated } = useAuthStore.getState()
   _setUser(user)
   _setHasHydrated(true)
+  // A visitor who was browsing signed out has no session listener yet (see
+  // AuthProvider). Start it now: it also merges the guest cart/favorites
+  // into the new account.
+  void import("@/lib/services/auth-listener").then((m) => m.ensureAuthListener())
 }
 
 type AuthResult<T = { user: AuthUser }> =
@@ -84,15 +121,12 @@ export async function signUp(input: {
   })
 
   if (error) {
-    if (error.code === "user_already_exists" || /already registered/i.test(error.message)) {
-      return { success: false, error: "An account with this email already exists." }
-    }
-    return { success: false, error: error.message }
+    return { success: false, error: authErrorMessage(error) }
   }
 
   // No session means the project still requires email confirmation.
   if (!data.user || !data.session) {
-    return { success: false, error: "Check your email to confirm your account, then sign in." }
+    return { success: false, error: translate("auth.errors.confirmEmail") }
   }
 
   const user = await fetchAuthUser(supabase, data.user)
@@ -111,9 +145,9 @@ export async function signIn(input: { email: string; password: string }): Promis
     // Same message whether the email doesn't exist or the password is
     // wrong — a real credential check shouldn't reveal which was incorrect.
     if (!error || error.code === "invalid_credentials") {
-      return { success: false, error: "Invalid email or password." }
+      return { success: false, error: translate("auth.errors.invalidCredentials") }
     }
-    return { success: false, error: error.message }
+    return { success: false, error: authErrorMessage(error) }
   }
 
   const user = await fetchAuthUser(supabase, data.user)
@@ -136,7 +170,7 @@ export async function signInWithGoogle(
       redirectTo: `${window.location.origin}/auth/callback?flow=oauth&next=${encodeURIComponent(next)}`,
     },
   })
-  return error ? { success: false, error: error.message } : { success: true }
+  return error ? { success: false, error: authErrorMessage(error) } : { success: true }
 }
 
 export async function signOut(): Promise<void> {
@@ -152,7 +186,7 @@ export async function requestPasswordReset(
   const { error } = await createClient().auth.resetPasswordForEmail(email.trim().toLowerCase(), {
     redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
   })
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: authErrorMessage(error) }
   return { success: true }
 }
 
@@ -162,7 +196,7 @@ export async function setNewPassword(
   newPassword: string
 ): Promise<{ success: true } | { success: false; error: string }> {
   const { error } = await createClient().auth.updateUser({ password: newPassword })
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: authErrorMessage(error) }
   return { success: true }
 }
 
@@ -179,8 +213,8 @@ export async function updateProfile(input: {
     .select("id, full_name, email, phone, role, created_at")
     .maybeSingle()
 
-  if (error) return { success: false, error: error.message }
-  if (!data) return { success: false, error: "Account not found." }
+  if (error) return { success: false, error: authErrorMessage(error) }
+  if (!data) return { success: false, error: translate("auth.errors.accountNotFound") }
 
   const user = toAuthUser(data as ProfileRow, useAuthStore.getState().user?.hasPassword ?? true)
   useAuthStore.getState()._setUser(user)
@@ -196,16 +230,16 @@ export async function changePassword(input: {
   newPassword: string
 }): Promise<{ success: true } | { success: false; error: string }> {
   const email = useAuthStore.getState().user?.email
-  if (!email) return { success: false, error: "Account not found." }
+  if (!email) return { success: false, error: translate("auth.errors.accountNotFound") }
 
   const supabase = createClient()
   const { error: verifyError } = await supabase.auth.signInWithPassword({
     email,
     password: input.currentPassword,
   })
-  if (verifyError) return { success: false, error: "Current password is incorrect." }
+  if (verifyError) return { success: false, error: translate("auth.errors.wrongCurrent") }
 
   const { error } = await supabase.auth.updateUser({ password: input.newPassword })
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: authErrorMessage(error) }
   return { success: true }
 }

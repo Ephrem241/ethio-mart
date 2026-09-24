@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useFormContext } from "react-hook-form"
 import { AlertTriangle } from "lucide-react"
 
+import { nameOf } from "@/lib/i18n/content"
+import { useT } from "@/lib/i18n/provider"
 import { useCartStore } from "@/lib/store/cart"
 import { useProductsByIds } from "@/lib/hooks/use-products-by-ids"
 import {
@@ -16,6 +18,7 @@ import type { CartLine } from "@/lib/store/cart"
 import { getDeliveryFee } from "@/lib/services/delivery"
 import { CheckoutOrderItem } from "@/components/checkout/checkout-order-item"
 import { OrderSummary } from "@/components/cart/order-summary"
+import { CheckoutStep } from "@/components/checkout/checkout-step"
 import { Button } from "@/components/ui/button"
 import type { CheckoutValues } from "@/components/checkout/checkout-schema"
 
@@ -26,6 +29,7 @@ function CheckoutReviewSection({
   submitError?: string
   isSubmitting: boolean
 }) {
+  const t = useT()
   const { watch } = useFormContext<CheckoutValues>()
   const city = watch("city")
   const items = useCartStore((s) => s.items)
@@ -43,17 +47,18 @@ function CheckoutReviewSection({
   const { subtotal, savings } = computeCartTotals(resolvedLines)
   const insufficientStock = getInsufficientStockLines(resolvedLines)
 
-  // Live estimate as the user picks a city (delivery fees are still a local
-  // table — no admin UI for them was ever built; see services/delivery.ts).
+  // Live estimate as the user picks a city (fees come from the delivery_fees
+  // table, and the free-delivery rule from store_settings — see
+  // services/delivery.ts). The database re-prices the order itself.
   useEffect(() => {
     let cancelled = false
-    getDeliveryFee(city ?? "").then((fee) => {
+    getDeliveryFee(city ?? "", subtotal).then((fee) => {
       if (!cancelled) setDeliveryFee(city ? fee : undefined)
     })
     return () => {
       cancelled = true
     }
-  }, [city])
+  }, [city, subtotal])
 
   const hasBlockingIssue =
     loading ||
@@ -62,9 +67,7 @@ function CheckoutReviewSection({
     insufficientStock.length > 0
 
   return (
-    <section className="space-y-4 rounded-card border border-border bg-card p-5">
-      <h2 className="font-medium text-charcoal">Order review</h2>
-
+    <CheckoutStep number={3} title={t("checkout.review.title")}>
       <div>
         {resolvedLines.map(({ line, product }) => (
           <CheckoutOrderItem key={product.id} line={line} product={product} />
@@ -74,25 +77,30 @@ function CheckoutReviewSection({
       {insufficientStock.length > 0 && (
         <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-sm text-warning">
           <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
-          Not enough stock for {insufficientStock.map(({ product }) => product.name_en).join(", ")}
-          . Update your cart to continue.
+          {t("checkout.review.insufficientStock", {
+            names: insufficientStock.map(({ product }) => nameOf(product, t.locale)).join(", "),
+          })}
         </p>
       )}
       {unavailableLines.length > 0 && (
         <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-sm text-warning">
           <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
-          Some items in your cart are no longer available. Remove them from your cart to continue.
+          {t("checkout.review.unavailable")}
         </p>
       )}
 
-      <OrderSummary subtotal={subtotal} totalSavings={savings} canCheckout hideCta deliveryFee={deliveryFee} />
+      <OrderSummary subtotal={subtotal} totalSavings={savings} canCheckout hideCta bare deliveryFee={deliveryFee} />
 
-      {submitError && <p className="text-sm text-error">{submitError}</p>}
+      {submitError && (
+        <p role="alert" className="text-sm text-error">
+          {submitError}
+        </p>
+      )}
 
-      <Button type="submit" className="w-full" disabled={isSubmitting || hasBlockingIssue}>
-        {isSubmitting ? "Placing order..." : "Place order"}
+      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || hasBlockingIssue}>
+        {isSubmitting ? t("checkout.review.placing") : t("checkout.review.place")}
       </Button>
-    </section>
+    </CheckoutStep>
   )
 }
 

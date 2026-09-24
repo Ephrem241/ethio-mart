@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
+import { useT } from "@/lib/i18n/provider"
 import { signInWithGoogle } from "@/lib/services/auth"
 import { Button } from "@/components/ui/button"
 
@@ -30,7 +31,8 @@ function GoogleMark() {
   )
 }
 
-function GoogleButton({ redirectTo, label = "Continue with Google" }: { redirectTo: string; label?: string }) {
+function GoogleButton({ redirectTo, label }: { redirectTo: string; label?: string }) {
+  const t = useT()
   const [starting, setStarting] = useState(false)
 
   async function handleClick() {
@@ -47,7 +49,7 @@ function GoogleButton({ redirectTo, label = "Continue with Google" }: { redirect
   return (
     <Button type="button" variant="outline" className="w-full gap-2" disabled={starting} onClick={handleClick}>
       <GoogleMark />
-      {starting ? "Redirecting to Google..." : label}
+      {starting ? t("auth.google.redirecting") : (label ?? t("auth.google.continue"))}
     </Button>
   )
 }

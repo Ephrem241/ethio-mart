@@ -1,5 +1,6 @@
 "use client"
 
+import { CheckoutSkeleton } from "@/components/feedback/skeletons"
 import { useEffect, useState } from "react"
 import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -37,8 +38,8 @@ function CheckoutContent() {
     }
   }, [ready, cartHasHydrated, items.length, router])
 
-  if (!ready || !user) return null
-  if (!cartHasHydrated || items.length === 0) return null
+  if (!ready || !user) return <CheckoutSkeleton />
+  if (!cartHasHydrated || items.length === 0) return <CheckoutSkeleton />
 
   async function onSubmit(values: CheckoutValues) {
     setSubmitError(undefined)
@@ -66,6 +67,7 @@ function CheckoutContent() {
   return (
     <FormProvider {...methods}>
       <form
+        method="post"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
         className="grid gap-6 lg:grid-cols-[1fr_380px] lg:items-start"
@@ -74,7 +76,9 @@ function CheckoutContent() {
           <CheckoutDeliverySection />
           <CheckoutPaymentSection />
         </div>
-        <CheckoutReviewSection submitError={submitError} isSubmitting={isSubmitting} />
+        <div className="lg:sticky lg:top-32">
+          <CheckoutReviewSection submitError={submitError} isSubmitting={isSubmitting} />
+        </div>
       </form>
     </FormProvider>
   )

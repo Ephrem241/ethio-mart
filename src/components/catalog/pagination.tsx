@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { cn } from "cn"
 
+import { getT } from "@/lib/i18n/server"
 import { buildPageUrl, type RawParams } from "@/components/catalog/listing-url"
 
 function PageLink({
@@ -22,7 +23,7 @@ function PageLink({
     return (
       <span
         aria-disabled="true"
-        className="flex size-8 items-center justify-center rounded-lg text-sm text-muted-text/40"
+        className="flex size-10 items-center justify-center rounded-xl text-sm text-muted-text/40"
       >
         {symbol}
       </span>
@@ -33,14 +34,14 @@ function PageLink({
     <Link
       href={buildPageUrl(basePath, rawParams, page)}
       aria-label={label}
-      className="flex size-8 items-center justify-center rounded-lg text-sm text-charcoal hover:bg-muted"
+      className="flex size-10 items-center justify-center rounded-xl text-sm text-charcoal hover:bg-cream"
     >
       {symbol}
     </Link>
   )
 }
 
-function Pagination({
+async function Pagination({
   page,
   totalPages,
   rawParams,
@@ -53,16 +54,17 @@ function Pagination({
 }) {
   if (totalPages <= 1) return null
 
+  const t = await getT()
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
 
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-center gap-1">
+    <nav aria-label={t("catalog.pagination.label")} className="flex items-center justify-center gap-1">
       <PageLink
         page={page - 1}
         disabled={page <= 1}
         rawParams={rawParams}
         basePath={basePath}
-        label="Previous page"
+        label={t("catalog.pagination.previous")}
         symbol="‹"
       />
       {pages.map((p) => (
@@ -71,8 +73,8 @@ function Pagination({
           href={buildPageUrl(basePath, rawParams, p)}
           aria-current={p === page ? "page" : undefined}
           className={cn(
-            "flex size-8 items-center justify-center rounded-lg text-sm",
-            p === page ? "bg-primary text-primary-foreground" : "text-charcoal hover:bg-muted"
+            "flex size-10 items-center justify-center rounded-xl text-sm",
+            p === page ? "bg-primary font-medium text-primary-foreground" : "text-charcoal hover:bg-cream"
           )}
         >
           {p}
@@ -83,7 +85,7 @@ function Pagination({
         disabled={page >= totalPages}
         rawParams={rawParams}
         basePath={basePath}
-        label="Next page"
+        label={t("catalog.pagination.next")}
         symbol="›"
       />
     </nav>

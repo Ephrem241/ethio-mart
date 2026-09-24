@@ -4,12 +4,14 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 
+import { useT } from "@/lib/i18n/provider"
 import { changePassword } from "@/lib/services/auth"
 import { changePasswordSchema, type ChangePasswordValues } from "@/components/account/change-password-schema"
 import { FormField } from "@/components/forms/form-field"
 import { Button } from "@/components/ui/button"
 
 function ChangePasswordForm({ userId }: { userId: string }) {
+  const t = useT()
   const {
     register,
     handleSubmit,
@@ -24,15 +26,15 @@ function ChangePasswordForm({ userId }: { userId: string }) {
       setError("currentPassword", { message: result.error })
       return
     }
-    toast.success("Password updated.")
+    toast.success(t("auth.reset.updated"))
     reset()
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="currentPassword"
-        label="Current password"
+        label={t("account.settings.currentPassword")}
         type="password"
         autoComplete="current-password"
         registration={register("currentPassword")}
@@ -40,14 +42,14 @@ function ChangePasswordForm({ userId }: { userId: string }) {
       />
       <FormField
         id="newPassword"
-        label="New password"
+        label={t("auth.fields.newPassword")}
         type="password"
         autoComplete="new-password"
         registration={register("newPassword")}
         error={errors.newPassword?.message}
       />
       <Button type="submit" disabled={isSubmitting}>
-        Update password
+        {t("auth.reset.update")}
       </Button>
     </form>
   )

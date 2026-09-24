@@ -1,3 +1,5 @@
+import { cache } from "react"
+
 import { createClient } from "@/lib/supabase/server"
 import type { Category } from "@/lib/data/categories"
 import {
@@ -6,6 +8,8 @@ import {
   pickFeatured,
   pickPopular,
   pickFlashDeals,
+  withCategory,
+  isOnSale,
   listProducts,
   computeFilterFacets,
   type ProductRow,
@@ -33,15 +37,18 @@ import {
 // byte-for-byte and can move into SQL later (Phase 15) without changing any
 // call site.
 
-async function loadCatalog() {
+// `cache` = memoized for the duration of ONE request. A page, its
+// generateMetadata and the components under it all ask for the catalog (or the
+// same product); this makes the database see each question once per request.
+const loadCatalog = cache(async () => {
   const supabase = await createClient()
   const [categoriesResult, productsResult] = await Promise.all([
     supabase.from("categories").select("*").order("sort_order", { ascending: true }),
     supabase.from("products").select("*, product_images(image_url, sort_order)").eq("is_active", true),
   ])
 
-  if (categoriesResult.error) throw new Error(`Failed to load categories: ${categoriesResult.error.message}`)
-  if (productsResult.error) throw new Error(`Failed to load products: ${productsResult.error.message}`)
+  if (categoriesResult.error) throw new Error(`Failed to load categories: ${categoriesResult.error.message}`) // i18n-ignore: developer-facing
+  if (productsResult.error) throw new Error(`Failed to load products: ${productsResult.error.message}`) // i18n-ignore: developer-facing
 
   const categories = categoriesResult.data as Category[]
   const sortOrderById = new Map(categories.map((c) => [c.id, c.sort_order]))
@@ -57,7 +64,7 @@ async function loadCatalog() {
     )
 
   return { categories, products }
-}
+})
 
 export async function getCategories(): Promise<CategoryWithCount[]> {
   const { categories, products } = await loadCatalog()
@@ -68,27 +75,28 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryWithCount
   return (await getCategories()).find((c) => c.slug === slug)
 }
 
-export async function getProductBySlug(slug: string): Promise<ProductWithCategory | undefined> {
+export const getProductBySlug = cache(async (slug: string): Promise<ProductWithCategory | undefined> => {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(image_url, sort_order), categories(name_en, slug)")
+    .select("*, product_images(image_url, sort_order), categories(name_en, name_am, slug)")
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle()
 
-  if (error) throw new Error(`Failed to load product: ${error.message}`)
+  if (error) throw new Error(`Failed to load product: ${error.message}`) // i18n-ignore: developer-facing
   if (!data) return undefined
 
   const { categories: category, ...row } = data as ProductRow & {
-    categories: { name_en: string; slug: string } | null
+    categories: { name_en: string; name_am: string; slug: string } | null
   }
   return {
     ...toProduct(row),
     categoryName: category?.name_en ?? "",
+    categoryNameAm: category?.name_am ?? "",
     categorySlug: category?.slug ?? "",
   }
-}
+})
 
 export async function getFeaturedProducts(limit = 8): Promise<ProductWithCategory[]> {
   const { categories, products } = await loadCatalog()
@@ -103,6 +111,36 @@ export async function getPopularProducts(limit = 8): Promise<ProductWithCategory
 export async function getFlashDeals(limit = 8): Promise<ProductWithCategory[]> {
   const { categories, products } = await loadCatalog()
   return pickFlashDeals(products, categories, limit)
+}
+
+// The newest products first (by when they were added). Products created in
+// the same moment keep the catalog order, since the sort is stable.
+export async function getNewArrivals(limit = 10): Promise<ProductWithCategory[]> {
+  const { categories, products } = await loadCatalog()
+  return [...products]
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, limit)
+    .map((product) => withCategory(product, categories))
+}
+
+// The facts behind the homepage's "Special Deals" banner, computed from the
+// products actually on sale — so "Up to N% Off" is never larger than the
+// biggest real discount, and the banner disappears when nothing is on sale.
+export interface DealsSummary {
+  count: number
+  maxDiscountPercent: number
+}
+
+export async function getDealsSummary(): Promise<DealsSummary> {
+  const { products } = await loadCatalog()
+  const onSale = products.filter(isOnSale)
+  // Rounded exactly like the "-23%" badge on a product card (DiscountBadge), so
+  // the banner's "Up to N%" is always the largest badge a shopper can see.
+  const maxDiscountPercent = onSale.reduce(
+    (max, product) => Math.max(max, Math.round((1 - product.price / product.compare_at_price!) * 100)),
+    0
+  )
+  return { count: onSale.length, maxDiscountPercent }
 }
 
 export async function getProducts(params: GetProductsParams = {}): Promise<ProductListResult> {

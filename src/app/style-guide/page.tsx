@@ -35,14 +35,16 @@ import {
 import { toast } from "sonner"
 
 const swatches: { name: string; className: string; hex: string }[] = [
-  { name: "Burgundy", className: "bg-burgundy", hex: "#6E2434" },
-  { name: "Burgundy Dark", className: "bg-burgundy-dark", hex: "#511A27" },
-  { name: "Ivory", className: "bg-ivory", hex: "#FAF7F2" },
-  { name: "Sand", className: "bg-sand", hex: "#E8D9CB" },
-  { name: "Charcoal", className: "bg-charcoal", hex: "#292124" },
-  { name: "Muted Text", className: "bg-muted-text", hex: "#71696B" },
+  { name: "Forest", className: "bg-forest", hex: "#123C35" },
+  { name: "Forest Dark", className: "bg-forest-dark", hex: "#092A25" },
+  { name: "Ivory", className: "bg-ivory", hex: "#FAF7F0" },
+  { name: "Cream", className: "bg-cream", hex: "#F3ECE2" },
+  { name: "Sand", className: "bg-sand", hex: "#E3D2BD" },
+  { name: "Gold", className: "bg-gold", hex: "#C9A15B" },
+  { name: "Charcoal", className: "bg-charcoal", hex: "#171717" },
+  { name: "Muted Text", className: "bg-muted-text", hex: "#706B64" },
   { name: "White", className: "bg-white", hex: "#FFFFFF" },
-  { name: "Border", className: "bg-[#E7E0DA]", hex: "#E7E0DA" },
+  { name: "Border", className: "bg-[#E5DED4]", hex: "#E5DED4" },
   { name: "Success", className: "bg-success", hex: "#267A55" },
   { name: "Warning", className: "bg-warning", hex: "#B7791F" },
   { name: "Error", className: "bg-error", hex: "#B42318" },
@@ -85,7 +87,7 @@ export default function StyleGuidePage() {
             የሚወዱትን ያግኙ።
           </p>
           <p className="font-amharic text-base text-charcoal">ምን ይፈልጋሉ?</p>
-          <p className="text-2xl font-semibold text-burgundy">1,850 ETB</p>
+          <p className="text-2xl font-semibold text-forest">1,850 ETB</p>
         </div>
       </section>
 
@@ -122,7 +124,7 @@ export default function StyleGuidePage() {
             <CardDescription>Fashion</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-semibold text-burgundy">1,850 ETB</p>
+            <p className="text-lg font-semibold text-forest">1,850 ETB</p>
           </CardContent>
           <CardFooter>
             <Button size="sm">Add to cart</Button>

@@ -1,9 +1,12 @@
 "use client"
 
+import { CardListSkeleton } from "@/components/feedback/skeletons"
 import { useState } from "react"
 import { MapPinOff, Pencil, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
+import { useT } from "@/lib/i18n/provider"
+import { cityLabel } from "@/lib/services/delivery"
 import { useRequireAuth } from "@/lib/hooks/use-require-auth"
 import { useMyAddresses } from "@/lib/hooks/use-addresses"
 import {
@@ -33,20 +36,21 @@ function toFormValues(address: AddressRecord): AddressValues {
 }
 
 function AccountAddressesContent() {
+  const t = useT()
   const { user, ready } = useRequireAuth("/login?redirect=/account/addresses")
   const { data: addresses, loading, error, reload } = useMyAddresses(user?.id)
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  if (!ready || !user || loading) return null
+  if (!ready || !user || loading) return <CardListSkeleton rows={2} />
 
   if (error || !addresses) {
     return (
       <EmptyState
         icon={MapPinOff}
-        title="We couldn't load your addresses."
-        description="Please refresh the page and try again."
+        title={t("account.addresses.loadFailed")}
+        description={t("account.addresses.refresh")}
       />
     )
   }
@@ -80,7 +84,7 @@ function AccountAddressesContent() {
       toast.error(result.error)
       return
     }
-    toast.success(editingId ? "Address updated." : "Address saved.")
+    toast.success(editingId ? t("account.addresses.updated") : t("account.addresses.saved"))
     setDialogOpen(false)
     reload()
   }
@@ -91,7 +95,7 @@ function AccountAddressesContent() {
       toast.error(result.error)
       return
     }
-    toast.success("Address removed.")
+    toast.success(t("account.addresses.removed"))
     reload()
   }
 
@@ -101,7 +105,7 @@ function AccountAddressesContent() {
       toast.error(result.error)
       return
     }
-    toast.success("Default address updated.")
+    toast.success(t("account.addresses.defaultUpdated"))
     reload()
   }
 
@@ -110,15 +114,15 @@ function AccountAddressesContent() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={openAdd}>Add address</Button>
+        <Button onClick={openAdd}>{t("account.addresses.add")}</Button>
       </div>
 
       {addresses.length === 0 ? (
         <EmptyState
           icon={MapPinOff}
-          title="No addresses yet."
-          description="Add a delivery address to speed up checkout."
-          action={<Button onClick={openAdd}>Add address</Button>}
+          title={t("account.addresses.emptyTitle")}
+          description={t("account.addresses.emptyText")}
+          action={<Button onClick={openAdd}>{t("account.addresses.add")}</Button>}
         />
       ) : (
         <div className="space-y-3">
@@ -127,26 +131,26 @@ function AccountAddressesContent() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="text-sm">
                   <p className="font-medium text-charcoal">
-                    {a.full_name} {a.is_default && <Badge className="ml-2 align-middle">Default</Badge>}
+                    {a.full_name} {a.is_default && <Badge className="ml-2 align-middle">{t("account.addresses.default")}</Badge>}
                   </p>
                   <p className="text-muted-text">{a.phone}</p>
                   <p className="text-muted-text">
-                    {a.address}, {a.woreda}, {a.sub_city}, {a.city}
+                    {a.address}, {a.woreda}, {a.sub_city}, {cityLabel(a.city, t)}
                   </p>
-                  {a.notes && <p className="text-muted-text">Notes: {a.notes}</p>}
+                  {a.notes && <p className="text-muted-text">{t("account.addresses.notes", { notes: a.notes })}</p>}
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon-sm" aria-label="Edit address" onClick={() => openEdit(a.id)}>
+                  <Button variant="ghost" size="icon-sm" aria-label={t("account.addresses.edit")} onClick={() => openEdit(a.id)}>
                     <Pencil className="size-4" />
                   </Button>
-                  <Button variant="ghost" size="icon-sm" aria-label="Delete address" onClick={() => handleRemove(a.id)}>
+                  <Button variant="ghost" size="icon-sm" aria-label={t("account.addresses.delete")} onClick={() => handleRemove(a.id)}>
                     <Trash2 className="size-4" />
                   </Button>
                 </div>
               </div>
               {!a.is_default && (
                 <Button variant="outline" size="sm" onClick={() => handleSetDefault(a.id)}>
-                  Set as default
+                  {t("account.addresses.setDefault")}
                 </Button>
               )}
             </div>
@@ -157,7 +161,7 @@ function AccountAddressesContent() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit address" : "Add address"}</DialogTitle>
+            <DialogTitle>{editingId ? t("account.addresses.edit") : t("account.addresses.add")}</DialogTitle>
           </DialogHeader>
           <AddressForm
             initialValues={editingAddress ? toFormValues(editingAddress) : undefined}

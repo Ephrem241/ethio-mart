@@ -9,9 +9,9 @@ import { RemoteProductImage } from "@/components/product/remote-product-image"
 // client render identical markup (no hydration mismatch).
 const GRADIENTS = [
   "bg-linear-to-br from-sand to-ivory",
-  "bg-linear-to-br from-burgundy/15 via-sand/40 to-ivory",
+  "bg-linear-to-br from-forest/15 via-sand/40 to-ivory",
   "bg-linear-to-br from-sand/70 via-ivory to-sand/30",
-  "bg-linear-to-br from-burgundy-dark/10 via-sand/50 to-ivory",
+  "bg-linear-to-br from-forest-dark/10 via-sand/50 to-ivory",
 ]
 
 function hashString(value: string): number {
@@ -27,6 +27,8 @@ function ImagePlaceholder({
   icon: Icon,
   label,
   imageUrl,
+  sizes = "100vw",
+  eager,
   aspectClassName = "aspect-square",
   className,
 }: {
@@ -41,6 +43,14 @@ function ImagePlaceholder({
    * seed product) behaves exactly as before.
    */
   imageUrl?: string | null
+  /**
+   * How wide this image is displayed, as an HTML `sizes` value — say it
+   * truthfully (e.g. "96px" for a cart thumbnail) so a small resized copy is
+   * downloaded instead of the full-size original.
+   */
+  sizes?: string
+  /** Load immediately instead of lazily: for the image the page opens with. */
+  eager?: boolean
   aspectClassName?: string
   className?: string
 }) {
@@ -57,8 +67,8 @@ function ImagePlaceholder({
         className
       )}
     >
-      <Icon aria-hidden className="size-10 text-burgundy/40" />
-      {imageUrl && <RemoteProductImage src={imageUrl} alt={label} className="absolute inset-0 size-full" />}
+      <Icon aria-hidden className="size-10 text-forest/40" />
+      {imageUrl && <RemoteProductImage src={imageUrl} alt={label} sizes={sizes} eager={eager} />}
     </div>
   )
 }

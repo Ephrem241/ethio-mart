@@ -25,7 +25,8 @@ export function computeCustomerRows(profiles: AdminProfile[], orders: OrderRecor
         email: p.email,
         phone: p.phone,
         orderCount: userOrders.length,
-        totalSpent: userOrders.reduce((sum, o) => sum + o.total, 0),
+        // A cancelled order is money never spent (same rule as the dashboard).
+        totalSpent: userOrders.filter((o) => o.status !== "cancelled").reduce((sum, o) => sum + o.total, 0),
         joinedAt: p.createdAt,
       }
     })

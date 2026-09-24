@@ -4,9 +4,13 @@ import { Heart } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "cn"
 
+import { useT } from "@/lib/i18n/provider"
 import { useFavoritesStore } from "@/lib/store/favorites"
 import { Button } from "@/components/ui/button"
 
+// A white round button that sits on top of a photo (card corner) or beside the
+// purchase buttons (product page). Filled red when saved, like every shop's
+// heart — the state is also in aria-pressed, never colour alone.
 function FavoriteButton({
   productId,
   className,
@@ -14,12 +18,13 @@ function FavoriteButton({
   productId: string
   className?: string
 }) {
+  const t = useT()
   const isFavorited = useFavoritesStore((s) => s.ids.includes(productId))
   const toggle = useFavoritesStore((s) => s.toggle)
 
   function handleToggle() {
     toggle(productId)
-    toast.success(isFavorited ? "Removed from favorites." : "Added to favorites.")
+    toast.success(isFavorited ? t("product.favorites.removed") : t("product.favorites.added"))
   }
 
   return (
@@ -29,10 +34,13 @@ function FavoriteButton({
       size="icon-sm"
       onClick={handleToggle}
       aria-pressed={isFavorited}
-      aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-      className={cn("rounded-full shadow-sm", className)}
+      aria-label={isFavorited ? t("product.favorites.remove") : t("product.favorites.add")}
+      className={cn(
+        "size-9 rounded-full bg-white/95 text-charcoal shadow-soft hover:bg-white hover:text-error",
+        className
+      )}
     >
-      <Heart className={cn("size-4", isFavorited && "fill-burgundy text-burgundy")} />
+      <Heart className={cn("size-[18px]", isFavorited && "fill-error text-error")} />
     </Button>
   )
 }

@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { Trash2 } from "lucide-react"
 
+import { categoryNameOf, nameOf } from "@/lib/i18n/content"
+import { useT } from "@/lib/i18n/provider"
 import type { CartLine } from "@/lib/store/cart"
 import { useCartStore } from "@/lib/store/cart"
 import type { ProductWithCategory } from "@/lib/services/catalog"
@@ -15,16 +17,18 @@ import { QuantitySelector } from "@/components/product/quantity-selector"
 import { Button } from "@/components/ui/button"
 
 function CartLineItem({ line, product }: { line: CartLine; product: ProductWithCategory }) {
+  const t = useT()
   const setQuantity = useCartStore((s) => s.setQuantity)
   const removeItem = useCartStore((s) => s.removeItem)
   const Icon = getCategoryIcon(product.categorySlug)
   const hasDiscount = isOnSale(product)
   const lineSubtotal = product.price * line.quantity
+  const name = nameOf(product, t.locale)
 
   return (
-    <div className="flex gap-4 border-b border-border py-4 last:border-b-0">
-      <Link href={`/product/${product.slug}`} className="w-20 shrink-0 sm:w-24">
-        <ImagePlaceholder seed={product.id} icon={Icon} label={product.name_en} />
+    <div className="flex gap-4 rounded-card border border-border/70 bg-card p-3 shadow-soft sm:p-4">
+      <Link href={`/product/${product.slug}`} className="w-24 shrink-0 self-start sm:w-28">
+        <ImagePlaceholder seed={product.id} icon={Icon} label={name} imageUrl={product.image_url} sizes="96px" />
       </Link>
 
       <div className="flex flex-1 flex-col gap-2">
@@ -32,26 +36,26 @@ function CartLineItem({ line, product }: { line: CartLine; product: ProductWithC
           <div>
             <Link
               href={`/product/${product.slug}`}
-              className="font-medium text-charcoal hover:text-burgundy"
+              className="font-medium text-charcoal hover:text-forest"
             >
-              {product.name_en}
+              {name}
             </Link>
-            <p className="text-xs text-muted-text">{product.categoryName}</p>
+            <p className="text-xs text-muted-text">{categoryNameOf(product, t.locale)}</p>
           </div>
           <Button
             type="button"
             variant="ghost"
             size="icon-sm"
             onClick={() => removeItem(product.id)}
-            aria-label={`Remove ${product.name_en} from cart`}
+            aria-label={t("cart.removeItem", { name })}
           >
             <Trash2 />
           </Button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Price amount={product.price} />
-          {hasDiscount && <Price amount={product.compare_at_price!} variant="compare" />}
+          <Price amount={product.price} t={t} />
+          {hasDiscount && <Price amount={product.compare_at_price!} t={t} variant="compare" />}
           <DiscountBadge price={product.price} compareAtPrice={product.compare_at_price} />
         </div>
 
@@ -61,7 +65,7 @@ function CartLineItem({ line, product }: { line: CartLine; product: ProductWithC
             onChange={(q) => setQuantity(product.id, q)}
             max={product.stock}
           />
-          <Price amount={lineSubtotal} />
+          <Price amount={lineSubtotal} t={t} />
         </div>
       </div>
     </div>

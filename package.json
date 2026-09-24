@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "seed:catalog": "node --env-file=.env --import tsx scripts/seed-catalog.ts",
-    "seed:admin": "node --env-file=.env --import tsx scripts/seed-admin.ts"
+    "seed:admin": "node --env-file=.env --import tsx scripts/seed-admin.ts",
+    "seed:images": "node --env-file=.env --import tsx scripts/seed-images.ts",
+    "check:i18n": "node --import tsx scripts/check-i18n.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

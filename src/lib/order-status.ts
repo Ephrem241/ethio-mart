@@ -1,3 +1,4 @@
+import type { Translator } from "@/lib/i18n/translator"
 import type { OrderStatus } from "@/lib/types/orders"
 
 export const ORDER_STATUSES: OrderStatus[] = [
@@ -9,21 +10,15 @@ export const ORDER_STATUSES: OrderStatus[] = [
   "cancelled",
 ]
 
-export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
-  pending: "Pending",
-  confirmed: "Confirmed",
-  preparing: "Preparing",
-  shipped: "Shipped",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-}
-
 // pending -> the one state something still needs to happen to (warning);
 // delivered/cancelled -> the two terminal outcomes (success/error);
 // confirmed/preparing/shipped -> in progress normally, nothing needs
 // attention right now (neutral secondary tone).
-export function getOrderStatusMeta(status: OrderStatus): { label: string; className: string } {
-  const label = ORDER_STATUS_LABELS[status]
+export function getOrderStatusMeta(
+  status: OrderStatus,
+  t: Translator
+): { label: string; className: string } {
+  const label = t(`order.status.${status}`)
   switch (status) {
     case "pending":
       return { label, className: "bg-warning/10 text-warning" }
@@ -38,12 +33,7 @@ export function getOrderStatusMeta(status: OrderStatus): { label: string; classN
 
 export type OrderHistoryFilter = "all" | "pending" | "delivered" | "cancelled"
 
-export const ORDER_HISTORY_FILTERS: { id: OrderHistoryFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "pending", label: "Pending" },
-  { id: "delivered", label: "Delivered" },
-  { id: "cancelled", label: "Cancelled" },
-]
+export const ORDER_HISTORY_FILTERS: OrderHistoryFilter[] = ["all", "pending", "delivered", "cancelled"]
 
 // The spec gives 4 filter buckets for 6 real statuses. "Pending" here means
 // "not yet resolved" (pending/confirmed/preparing/shipped), matching the

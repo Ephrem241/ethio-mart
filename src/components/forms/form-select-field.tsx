@@ -11,7 +11,7 @@ function FormSelectField({
 }: {
   id: string
   label: string
-  options: string[]
+  options: { value: string; label: string }[]
   placeholder?: string
   error?: string
   registration: UseFormRegisterReturn
@@ -29,10 +29,10 @@ function FormSelectField({
         )}
         {...registration}
       >
-        <option value="">{placeholder ?? "Select..."}</option>
+        <option value="">{placeholder}</option>
         {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
         ))}
       </select>

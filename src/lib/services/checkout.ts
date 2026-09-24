@@ -1,4 +1,7 @@
 import { createClient } from "@/lib/supabase/client"
+import { nameOf } from "@/lib/i18n/content"
+import { translateDbError } from "@/lib/i18n/db-errors"
+import { translate, getActiveLocale } from "@/lib/i18n/translate"
 import { useCartStore } from "@/lib/store/cart"
 import { resolveCartLines, computeCartTotals, getInsufficientStockLines } from "@/lib/cart-math"
 import { fetchProductsByIds } from "@/lib/services/catalog-client"
@@ -31,40 +34,35 @@ export type PlaceOrderResult =
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   const items = useCartStore.getState().items
   if (items.length === 0) {
-    return { success: false, error: "Your cart is empty." }
+    return { success: false, error: translate("checkout.errors.cartEmpty") }
   }
 
   const products = await fetchProductsByIds(items.map((line) => line.productId))
   const { resolvedLines, unavailableLines } = resolveCartLines(items, products)
   if (unavailableLines.length > 0) {
-    return {
-      success: false,
-      error: "Some items in your cart are no longer available. Please remove them and try again.",
-    }
+    return { success: false, error: translate("checkout.errors.unavailable") }
   }
 
   const insufficientStock = getInsufficientStockLines(resolvedLines)
   if (insufficientStock.length > 0) {
-    const names = insufficientStock.map(({ product }) => product.name_en).join(", ")
-    return {
-      success: false,
-      error: `Not enough stock for: ${names}. Please update the quantity in your cart and try again.`,
-    }
+    const locale = getActiveLocale()
+    const names = insufficientStock.map(({ product }) => nameOf(product, locale)).join(", ")
+    return { success: false, error: translate("checkout.errors.insufficientStock", { names }) }
   }
 
   const provider = getPaymentProvider(input.paymentMethod)
   if (!provider || !provider.enabled) {
-    return { success: false, error: "Select a valid payment method." }
+    return { success: false, error: translate("checkout.errors.invalidPayment") }
   }
 
   // Estimate only — used for the provider hand-off; the database computes
   // the real total.
   const { subtotal } = computeCartTotals(resolvedLines)
-  const estimatedTotal = subtotal + (await getDeliveryFee(input.deliveryAddress.city))
+  const estimatedTotal = subtotal + (await getDeliveryFee(input.deliveryAddress.city, subtotal))
 
   const paymentResult = await provider.process({ total: estimatedTotal })
   if (!paymentResult.success) {
-    return { success: false, error: paymentResult.error ?? "Payment could not be processed." }
+    return { success: false, error: paymentResult.error ?? translate("checkout.errors.paymentFailed") }
   }
 
   const { data, error } = await createClient().rpc("place_order", {
@@ -75,8 +73,9 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
 
   if (error) {
     // The function's own exception text (out of stock, unavailable item...)
-    // is written to be shown to the shopper as-is.
-    return { success: false, error: error.message }
+    // is written for the shopper, in English; translateDbError shows the
+    // translated equivalent.
+    return { success: false, error: translateDbError(error.message) }
   }
 
   // The RPC returns the bare order row; fetch its line items for the result.

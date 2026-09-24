@@ -1,29 +1,33 @@
-import Link from "next/link"
-
+import { getT } from "@/lib/i18n/server"
 import type { CategoryWithCount } from "@/lib/services/catalog"
 import { CategoryCard } from "@/components/product/category-card"
+import { Reveal } from "@/components/motion/reveal"
+import { SectionHeading } from "@/components/home/section-heading"
 
-function CategorySection({ categories }: { categories: CategoryWithCount[] }) {
+// One row of six on a wide screen (five on a laptop, three on a tablet, two
+// on a phone). The rest of the categories are one click away via "View All".
+const VISIBLE = 6
+
+async function CategorySection({ categories }: { categories: CategoryWithCount[] }) {
+  if (categories.length === 0) return null
+  const t = await getT()
+
   return (
-    <section className="space-y-6">
-      <div className="flex items-end justify-between gap-4">
-        <div className="space-y-1">
-          <h2 className="text-2xl font-semibold text-charcoal">Shop by category</h2>
-          <p className="text-muted-text">Explore products made for everyday life.</p>
-        </div>
-        <Link
+    <Reveal>
+      <section aria-labelledby="categories-heading" className="space-y-6">
+        <SectionHeading
+          id="categories-heading"
+          title={t("home.categoriesTitle")}
           href="/categories"
-          className="shrink-0 text-sm font-medium text-burgundy hover:underline"
-        >
-          View all categories
-        </Link>
-      </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {categories.map((category) => (
-          <CategoryCard key={category.id} category={category} />
-        ))}
-      </div>
-    </section>
+          linkLabel={t("home.viewAll")}
+        />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
+          {categories.slice(0, VISIBLE).map((category) => (
+            <CategoryCard key={category.id} category={category} />
+          ))}
+        </div>
+      </section>
+    </Reveal>
   )
 }
 

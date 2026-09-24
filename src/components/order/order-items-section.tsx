@@ -2,6 +2,9 @@
 
 import Link from "next/link"
 
+import { nameOf } from "@/lib/i18n/content"
+import { useT } from "@/lib/i18n/provider"
+import { formatPrice } from "@/lib/currency"
 import type { OrderItemRecord } from "@/lib/types/orders"
 import { useProductsByIds } from "@/lib/hooks/use-products-by-ids"
 import { getCategoryIcon } from "@/components/product/category-icons"
@@ -14,6 +17,7 @@ import { Price } from "@/components/product/price"
 // row and render its image; a deactivated/deleted product falls back to
 // plain text rather than a dead link.
 function OrderItemsSection({ items }: { items: OrderItemRecord[] }) {
+  const t = useT()
   const { products } = useProductsByIds(
     items.map((item) => item.product_id).filter((id): id is string => id !== null)
   )
@@ -21,10 +25,13 @@ function OrderItemsSection({ items }: { items: OrderItemRecord[] }) {
 
   return (
     <section className="space-y-3 rounded-card border border-border bg-card p-5">
-      <h2 className="font-medium text-charcoal">Products</h2>
+      <h2 className="font-medium text-charcoal">{t("order.items.title")}</h2>
       <div>
         {items.map((item) => {
           const product = item.product_id ? productsById.get(item.product_id) : undefined
+          // The line's own name is the snapshot from checkout (English);
+          // while the product still exists, show its name in this language.
+          const name = product ? nameOf(product, t.locale) : item.product_name
 
           return (
             <div key={item.id} className="flex items-center gap-3 border-b border-border py-3 last:border-b-0">
@@ -33,8 +40,9 @@ function OrderItemsSection({ items }: { items: OrderItemRecord[] }) {
                   <ImagePlaceholder
                     seed={product.id}
                     icon={getCategoryIcon(product.categorySlug)}
-                    label={item.product_name}
+                    label={name}
                     imageUrl={product.image_url}
+                    sizes="56px"
                   />
                 </Link>
               ) : (
@@ -43,16 +51,16 @@ function OrderItemsSection({ items }: { items: OrderItemRecord[] }) {
               <div className="flex-1">
                 {product ? (
                   <Link href={`/product/${product.slug}`} className="text-sm font-medium text-charcoal hover:underline">
-                    {item.product_name}
+                    {name}
                   </Link>
                 ) : (
-                  <p className="text-sm font-medium text-charcoal">{item.product_name}</p>
+                  <p className="text-sm font-medium text-charcoal">{name}</p>
                 )}
                 <p className="text-xs text-muted-text">
-                  Qty {item.quantity} × {item.unit_price.toLocaleString()} ETB
+                  {t("order.items.qtyLine", { quantity: item.quantity, price: formatPrice(item.unit_price, t) })}
                 </p>
               </div>
-              <Price amount={item.total} />
+              <Price amount={item.total} t={t} />
             </div>
           )
         })}

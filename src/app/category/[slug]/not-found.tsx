@@ -1,13 +1,17 @@
 import { PackageX } from "lucide-react"
+
+import { getT } from "@/lib/i18n/server"
 import { EmptyState } from "@/components/feedback/empty-state"
 
-export default function CategoryNotFound() {
+export default async function CategoryNotFound() {
+  const t = await getT()
+
   return (
     <div className="py-16">
       <EmptyState
         icon={PackageX}
-        title="Category not found."
-        description="This category may have been removed or renamed."
+        title={t("catalog.categoryNotFound")}
+        description={t("catalog.categoryNotFoundText")}
       />
     </div>
   )

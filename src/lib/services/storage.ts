@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
+import { translate } from "@/lib/i18n/translate"
 
 // Image upload to Supabase Storage (spec Section 37). Only admins can write
 // to the `products` / `categories` buckets — enforced by Storage RLS, not by
@@ -30,12 +31,12 @@ async function resizeToWebp(file: File): Promise<Blob> {
   canvas.width = width
   canvas.height = height
   const context = canvas.getContext("2d")
-  if (!context) throw new Error("Your browser can't process images.")
+  if (!context) throw new Error(translate("admin.upload.browserUnsupported"))
   context.drawImage(bitmap, 0, 0, width, height)
   bitmap.close()
 
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", WEBP_QUALITY))
-  if (!blob) throw new Error("Couldn't process that image.")
+  if (!blob) throw new Error(translate("admin.upload.processFailed"))
   return blob
 }
 
@@ -44,17 +45,17 @@ export async function uploadImage(
   file: File
 ): Promise<{ success: true; url: string } | { success: false; error: string }> {
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { success: false, error: "Use a JPEG, PNG, or WebP image." }
+    return { success: false, error: translate("admin.upload.badType") }
   }
   if (file.size > MAX_INPUT_BYTES) {
-    return { success: false, error: "That image is too large. Choose one under 15MB." }
+    return { success: false, error: translate("admin.upload.tooLarge") }
   }
 
   let blob: Blob
   try {
     blob = await resizeToWebp(file)
   } catch (error) {
-    return { success: false, error: error instanceof Error ? error.message : "Couldn't process that image." }
+    return { success: false, error: error instanceof Error ? error.message : translate("admin.upload.processFailed") }
   }
 
   // A fresh random name each time: no overwriting, and a stale cached copy
@@ -66,6 +67,6 @@ export async function uploadImage(
     cacheControl: "31536000",
   })
 
-  if (error) return { success: false, error: error.message }
+  if (error) return { success: false, error: translate("admin.upload.uploadFailed") }
   return { success: true, url: supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl }
 }

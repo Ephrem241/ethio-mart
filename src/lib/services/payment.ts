@@ -10,6 +10,9 @@
 // server route holding the provider's secret and is deliberately not faked
 // here.
 
+import { translate } from "@/lib/i18n/translate"
+import type { MessageKey } from "@/lib/i18n/translator"
+
 export type PaymentStatus = "pending" | "paid" | "failed"
 
 export interface PaymentResult {
@@ -20,16 +23,17 @@ export interface PaymentResult {
 
 export interface PaymentProvider {
   id: string
-  label: string
-  description?: string
+  // Dictionary keys, not text: the checkout translates them when rendering.
+  label: MessageKey
+  description?: MessageKey
   enabled: boolean
   process(context: { total: number }): Promise<PaymentResult>
 }
 
 export const cashOnDeliveryProvider: PaymentProvider = {
   id: "cod",
-  label: "Cash on Delivery",
-  description: "Pay in cash when your order arrives.",
+  label: "checkout.payment.codLabel",
+  description: "checkout.payment.codDescription",
   enabled: true,
   async process() {
     // No money moves upfront with COD, so "paid" would be a lie until the
@@ -40,11 +44,11 @@ export const cashOnDeliveryProvider: PaymentProvider = {
 
 export const manualPaymentPlaceholderProvider: PaymentProvider = {
   id: "manual",
-  label: "Other payment methods",
-  description: "Chapa, Telebirr, and other providers are coming soon.",
+  label: "checkout.payment.manualLabel",
+  description: "checkout.payment.manualDescription",
   enabled: false,
   async process() {
-    return { success: false, paymentStatus: "failed", error: "This payment method isn't available yet." }
+    return { success: false, paymentStatus: "failed", error: translate("checkout.errors.paymentUnavailable") }
   },
 }
 

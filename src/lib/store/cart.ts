@@ -2,11 +2,7 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 
 import { useAuthStore } from "@/lib/store/auth"
-import {
-  upsertRemoteCartLine,
-  deleteRemoteCartLine,
-  clearRemoteCart,
-} from "@/lib/services/cart-remote"
+import { createEditTracker } from "@/lib/store/edit-tracker"
 
 export interface CartLine {
   productId: string
@@ -36,9 +32,21 @@ interface CartState {
 // through to `cart_items`, fire-and-forget — the local store stays the one
 // read model every cart component already uses, so nothing that displays
 // the cart had to change.
-function mirror(get: () => CartState, run: (userId: string) => Promise<void>) {
+//
+// The remote module (and the Supabase client behind it) is loaded on the first
+// write, not with the page: a guest never needs it, and the cart button in the
+// header must not make every page download it.
+type CartRemote = typeof import("@/lib/services/cart-remote")
+
+// What the shopper changed here since the server copy was last reconciled; the
+// sign-in sync merges it over the server's snapshot (see edit-tracker.ts).
+export const cartEdits = createEditTracker()
+
+function mirror(get: () => CartState, run: (remote: CartRemote, userId: string) => Promise<void>) {
   const user = useAuthStore.getState().user
-  if (user && get().ownerId === user.id) void run(user.id)
+  if (user && get().ownerId === user.id) {
+    void import("@/lib/services/cart-remote").then((remote) => run(remote, user.id))
+  }
 }
 
 export const useCartStore = create<CartState>()(
@@ -49,6 +57,7 @@ export const useCartStore = create<CartState>()(
       hasHydrated: false,
       setHasHydrated: (value) => set({ hasHydrated: value }),
       addItem: (productId, quantity = 1) => {
+        cartEdits.record(productId)
         set((state) => {
           const existing = state.items.find((i) => i.productId === productId)
           return existing
@@ -60,25 +69,28 @@ export const useCartStore = create<CartState>()(
             : { items: [...state.items, { productId, quantity }] }
         })
         const line = get().items.find((i) => i.productId === productId)
-        if (line) mirror(get, (uid) => upsertRemoteCartLine(uid, productId, line.quantity))
+        if (line) mirror(get, (r, uid) => r.upsertRemoteCartLine(uid, productId, line.quantity))
       },
       setQuantity: (productId, quantity) => {
+        cartEdits.record(productId)
         set((state) => ({
           items:
             quantity <= 0
               ? state.items.filter((i) => i.productId !== productId)
               : state.items.map((i) => (i.productId === productId ? { ...i, quantity } : i)),
         }))
-        if (quantity <= 0) mirror(get, (uid) => deleteRemoteCartLine(uid, productId))
-        else mirror(get, (uid) => upsertRemoteCartLine(uid, productId, quantity))
+        if (quantity <= 0) mirror(get, (r, uid) => r.deleteRemoteCartLine(uid, productId))
+        else mirror(get, (r, uid) => r.upsertRemoteCartLine(uid, productId, quantity))
       },
       removeItem: (productId) => {
+        cartEdits.record(productId)
         set((state) => ({ items: state.items.filter((i) => i.productId !== productId) }))
-        mirror(get, (uid) => deleteRemoteCartLine(uid, productId))
+        mirror(get, (r, uid) => r.deleteRemoteCartLine(uid, productId))
       },
       clearCart: () => {
+        cartEdits.recordAll()
         set({ items: [] })
-        mirror(get, (uid) => clearRemoteCart(uid))
+        mirror(get, (r, uid) => r.clearRemoteCart(uid))
       },
       // Sync-internal: replaces local state WITHOUT writing back to the
       // server (used when the server copy is the thing being loaded).

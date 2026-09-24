@@ -1,6 +1,7 @@
 import type { PostgrestError } from "@supabase/supabase-js"
 
 import { createClient } from "@/lib/supabase/client"
+import { translate } from "@/lib/i18n/translate"
 import type { Product } from "@/lib/data/products"
 import type { Category } from "@/lib/data/categories"
 import { toProduct, type ProductRow } from "@/lib/services/catalog"
@@ -46,7 +47,8 @@ export interface CategoryFormValues {
 
 type Result<T = undefined> = { success: true; data: T } | { success: false; error: string }
 
-const NO_PERMISSION = "You don't have permission to do that."
+// Looked up when needed (not at module load) so it follows the current language.
+const noPermission = () => translate("errors.notAllowed")
 
 function isValidSlug(slug: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
@@ -65,17 +67,17 @@ function fail(error: string): { success: false; error: string } {
 function describe(error: PostgrestError, subject: "product" | "category"): string {
   const text = `${error.message} ${error.details ?? ""}`
   if (error.code === "23505") {
-    if (/_sku_key/.test(text)) return "A product with this SKU already exists."
-    return `A ${subject} with this slug already exists.`
+    if (/_sku_key/.test(text)) return translate("admin.errors.skuExists")
+    return translate(subject === "product" ? "admin.errors.productSlugExists" : "admin.errors.categorySlugExists")
   }
   if (error.code === "23503") {
     if (subject === "category") {
-      return "Cannot delete a category with products assigned. Move or delete its products first."
+      return translate("admin.errors.categoryInUse")
     }
-    return "Select a valid category."
+    return translate("admin.errors.invalidCategory")
   }
-  if (error.code === "23514") return "One of the values is out of range."
-  return error.message
+  if (error.code === "23514") return translate("admin.errors.outOfRange")
+  return translate("common.somethingWentWrong")
 }
 
 const PRODUCT_SELECT = "*, product_images(id, image_url, sort_order)"
@@ -90,7 +92,7 @@ export async function fetchAdminProducts(): Promise<Product[]> {
     .select(PRODUCT_SELECT)
     .order("created_at", { ascending: false })
 
-  if (error) throw new Error(`Failed to load products: ${error.message}`)
+  if (error) throw new Error(`Failed to load products: ${error.message}`) // i18n-ignore: developer-facing
   return (data as ProductRow[]).map(toProduct)
 }
 
@@ -103,7 +105,7 @@ export async function fetchAdminProduct(id: string): Promise<Product | null> {
     .maybeSingle()
 
   if (error?.code === "22P02") return null
-  if (error) throw new Error(`Failed to load product: ${error.message}`)
+  if (error) throw new Error(`Failed to load product: ${error.message}`) // i18n-ignore: developer-facing
   return data ? toProduct(data as ProductRow) : null
 }
 
@@ -113,7 +115,7 @@ export async function fetchAdminCategories(): Promise<Category[]> {
     .select("*")
     .order("sort_order", { ascending: true })
 
-  if (error) throw new Error(`Failed to load categories: ${error.message}`)
+  if (error) throw new Error(`Failed to load categories: ${error.message}`) // i18n-ignore: developer-facing
   return data as Category[]
 }
 
@@ -171,7 +173,7 @@ function productColumns(input: ProductFormValues) {
 
 export async function createProduct(input: ProductFormValues): Promise<Result<Product>> {
   if (!isValidSlug(input.slug.trim())) {
-    return fail("Slug must be lowercase letters, numbers, and hyphens only.")
+    return fail(translate("admin.errors.slugInvalid"))
   }
 
   const { data, error } = await createClient()
@@ -189,7 +191,7 @@ export async function createProduct(input: ProductFormValues): Promise<Result<Pr
 
 export async function updateProduct(id: string, input: ProductFormValues): Promise<Result<Product>> {
   if (!isValidSlug(input.slug.trim())) {
-    return fail("Slug must be lowercase letters, numbers, and hyphens only.")
+    return fail(translate("admin.errors.slugInvalid"))
   }
 
   const { data, error } = await createClient()
@@ -199,7 +201,7 @@ export async function updateProduct(id: string, input: ProductFormValues): Promi
     .select(PRODUCT_SELECT)
 
   if (error) return fail(describe(error, "product"))
-  if (!data || data.length === 0) return fail("Product not found.")
+  if (!data || data.length === 0) return fail(translate("admin.errors.productNotFound"))
 
   const imageUrl = input.image_url?.trim() || null
   await syncPrimaryImage(id, imageUrl, input.name_en.trim())
@@ -212,14 +214,14 @@ export async function updateProduct(id: string, input: ProductFormValues): Promi
 export async function deleteProduct(id: string): Promise<Result> {
   const { data, error } = await createClient().from("products").delete().eq("id", id).select("id")
   if (error) return fail(describe(error, "product"))
-  if (!data || data.length === 0) return fail(NO_PERMISSION)
+  if (!data || data.length === 0) return fail(noPermission())
   return ok(undefined)
 }
 
 async function setProductFlag(id: string, changes: Partial<Pick<Product, "is_active" | "is_featured" | "is_popular">>): Promise<Result> {
   const { data, error } = await createClient().from("products").update(changes).eq("id", id).select("id")
-  if (error) return fail(error.message)
-  if (!data || data.length === 0) return fail(NO_PERMISSION)
+  if (error) return fail(translate("common.somethingWentWrong"))
+  if (!data || data.length === 0) return fail(noPermission())
   return ok(undefined)
 }
 
@@ -233,7 +235,7 @@ export const setProductPopular = (id: string, isPopular: boolean) => setProductF
 
 export async function createCategory(input: CategoryFormValues): Promise<Result<Category>> {
   const slug = input.slug.trim()
-  if (!isValidSlug(slug)) return fail("Slug must be lowercase letters, numbers, and hyphens only.")
+  if (!isValidSlug(slug)) return fail(translate("admin.errors.slugInvalid"))
 
   const supabase = createClient()
   const { data: last } = await supabase
@@ -263,7 +265,7 @@ export async function createCategory(input: CategoryFormValues): Promise<Result<
 
 export async function updateCategory(id: string, input: CategoryFormValues): Promise<Result<Category>> {
   const slug = input.slug.trim()
-  if (!isValidSlug(slug)) return fail("Slug must be lowercase letters, numbers, and hyphens only.")
+  if (!isValidSlug(slug)) return fail(translate("admin.errors.slugInvalid"))
 
   const { data, error } = await createClient()
     .from("categories")
@@ -279,7 +281,7 @@ export async function updateCategory(id: string, input: CategoryFormValues): Pro
     .select("*")
 
   if (error) return fail(describe(error, "category"))
-  if (!data || data.length === 0) return fail("Category not found.")
+  if (!data || data.length === 0) return fail(translate("admin.errors.categoryNotFound"))
   return ok(data[0] as Category)
 }
 
@@ -289,7 +291,7 @@ export async function updateCategory(id: string, input: CategoryFormValues): Pro
 export async function deleteCategory(id: string): Promise<Result> {
   const { data, error } = await createClient().from("categories").delete().eq("id", id).select("id")
   if (error) return fail(describe(error, "category"))
-  if (!data || data.length === 0) return fail(NO_PERMISSION)
+  if (!data || data.length === 0) return fail(noPermission())
   return ok(undefined)
 }
 
@@ -299,8 +301,8 @@ export async function setCategoryActive(id: string, isActive: boolean): Promise<
     .update({ is_active: isActive })
     .eq("id", id)
     .select("id")
-  if (error) return fail(error.message)
-  if (!data || data.length === 0) return fail(NO_PERMISSION)
+  if (error) return fail(translate("common.somethingWentWrong"))
+  if (!data || data.length === 0) return fail(noPermission())
   return ok(undefined)
 }
 
@@ -311,11 +313,11 @@ export async function moveCategory(id: string, direction: "up" | "down"): Promis
     .select("id, sort_order")
     .order("sort_order", { ascending: true })
 
-  if (error) return fail(error.message)
+  if (error) return fail(translate("common.somethingWentWrong"))
   const sorted = data as { id: string; sort_order: number }[]
 
   const index = sorted.findIndex((c) => c.id === id)
-  if (index === -1) return fail("Category not found.")
+  if (index === -1) return fail(translate("admin.errors.categoryNotFound"))
 
   const swapWith = direction === "up" ? index - 1 : index + 1
   if (swapWith < 0 || swapWith >= sorted.length) return ok(undefined)
@@ -332,6 +334,6 @@ export async function moveCategory(id: string, direction: "up" | "down"): Promis
     )
   )
   const failed = results.find((r) => r.error)
-  if (failed?.error) return fail(failed.error.message)
+  if (failed?.error) return fail(translate("common.somethingWentWrong"))
   return ok(undefined)
 }

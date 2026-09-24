@@ -1,6 +1,7 @@
 import { toast } from "sonner"
 
 import { createClient } from "@/lib/supabase/client"
+import { translate } from "@/lib/i18n/translate"
 
 // Raw `favorites` reads/writes for a SIGNED-IN user (guests keep favorites
 // locally — spec Section 25 — and they're merged in on sign-in, see
@@ -8,10 +9,12 @@ import { createClient } from "@/lib/supabase/client"
 
 function reportSyncFailure(action: string, message: string) {
   console.error(`[favorites sync] ${action} failed:`, message)
-  toast.error("Couldn't sync your favorites. Your changes are saved on this device.")
+  toast.error(translate("account.favorites.syncFailed"))
 }
 
-export async function fetchRemoteFavorites(userId: string): Promise<string[]> {
+// `null` means the load FAILED — not "there are no favorites". The caller keeps
+// the local copy then, instead of wiping it because the network hiccuped.
+export async function fetchRemoteFavorites(userId: string): Promise<string[] | null> {
   const { data, error } = await createClient()
     .from("favorites")
     .select("product_id")
@@ -20,7 +23,7 @@ export async function fetchRemoteFavorites(userId: string): Promise<string[]> {
 
   if (error) {
     reportSyncFailure("load", error.message)
-    return []
+    return null
   }
   return (data ?? []).map((row) => row.product_id as string)
 }

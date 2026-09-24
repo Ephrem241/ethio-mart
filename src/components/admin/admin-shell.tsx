@@ -1,5 +1,6 @@
 "use client"
 
+import { PageSkeleton } from "@/components/feedback/skeletons"
 import type { ReactNode } from "react"
 
 import { useRequireAdmin } from "@/lib/hooks/use-require-admin"
@@ -15,7 +16,7 @@ import { AdminNav } from "@/components/admin/admin-nav"
 function AdminShell({ children }: { children: ReactNode }) {
   const { ready } = useRequireAdmin()
 
-  if (!ready) return null
+  if (!ready) return <PageSkeleton />
 
   return (
     <div className="space-y-6 py-8 lg:grid lg:grid-cols-[220px_1fr] lg:items-start lg:gap-8 lg:space-y-0">

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { ShoppingBag } from "lucide-react"
 import { cn } from "cn"
 
+import { useT } from "@/lib/i18n/provider"
 import { useCartStore, selectCartCount } from "@/lib/store/cart"
 import { Button } from "@/components/ui/button"
 
@@ -14,18 +15,56 @@ import { Button } from "@/components/ui/button"
 // useAddToCart. /cart itself is a client-only, localStorage-only render
 // with no network round trip, so a drawer wouldn't save a real page-load
 // cost either. Deliberately deferred, not overlooked.
-function CartButton({ className }: { className?: string }) {
+//
+// `variant="stacked"` is the desktop header's icon-over-label link; the
+// default is the compact icon button used on phones.
+function CartButton({
+  className,
+  variant = "icon",
+}: {
+  className?: string
+  variant?: "icon" | "stacked"
+}) {
+  const t = useT()
   const count = useCartStore(selectCartCount)
+  const label = count > 0 ? t.plural("nav.cartCount", count) : t("nav.cart")
+  const badge = count > 0 && (
+    <span
+      aria-hidden
+      className="absolute -top-1 -right-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gold px-1 text-[10px] leading-none font-bold text-forest-dark ring-2 ring-background"
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  )
+
+  if (variant === "stacked") {
+    return (
+      <Link
+        href="/cart"
+        aria-label={label}
+        className={cn(
+          "flex min-w-14 flex-col items-center gap-1 rounded-xl px-2 py-1.5 text-charcoal transition-colors outline-none hover:text-forest focus-visible:ring-3 focus-visible:ring-ring/50",
+          className
+        )}
+      >
+        <span className="relative">
+          <ShoppingBag aria-hidden className="size-[22px]" strokeWidth={1.75} />
+          {badge}
+        </span>
+        <span aria-hidden className="text-[11px] leading-none font-medium">
+          {t("nav.cart")}
+        </span>
+      </Link>
+    )
+  }
 
   return (
-    <Button variant="ghost" size="icon" asChild className={cn("relative", className)}>
-      <Link href="/cart" aria-label={count > 0 ? `Cart, ${count} item${count === 1 ? "" : "s"}` : "Cart"}>
-        <ShoppingBag />
-        {count > 0 && (
-          <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-burgundy px-1 text-[10px] font-semibold text-white">
-            {count > 99 ? "99+" : count}
-          </span>
-        )}
+    <Button variant="ghost" size="icon-lg" asChild className={cn("relative", className)}>
+      <Link href="/cart" aria-label={label}>
+        <span className="relative">
+          <ShoppingBag aria-hidden className="size-[22px]" strokeWidth={1.75} />
+          {badge}
+        </span>
       </Link>
     </Button>
   )

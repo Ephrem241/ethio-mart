@@ -4,6 +4,7 @@ import { useRef, useState } from "react"
 import { ImageIcon } from "lucide-react"
 import { toast } from "sonner"
 
+import { useT } from "@/lib/i18n/provider"
 import { ALLOWED_IMAGE_TYPES, uploadImage, type ImageBucket } from "@/lib/services/storage"
 import { ImagePlaceholder } from "@/components/product/image-placeholder"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,7 @@ function ImageUploadField({
   onChange: (url: string | null) => void
   error?: string
 }) {
+  const t = useT()
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
 
@@ -46,7 +48,7 @@ function ImageUploadField({
       return
     }
     onChange(result.url)
-    toast.success("Image uploaded.")
+    toast.success(t("admin.upload.uploaded"))
   }
 
   return (
@@ -56,7 +58,7 @@ function ImageUploadField({
       </label>
       <div className="flex items-center gap-3">
         <div className="size-20 shrink-0">
-          <ImagePlaceholder seed={id} icon={ImageIcon} label={`${label} preview`} imageUrl={value} />
+          <ImagePlaceholder seed={id} icon={ImageIcon} label={t("admin.upload.preview", { label })} imageUrl={value} sizes="80px" />
         </div>
         <div className="flex flex-col items-start gap-2">
           <input
@@ -74,16 +76,16 @@ function ImageUploadField({
             disabled={uploading}
             onClick={() => inputRef.current?.click()}
           >
-            {uploading ? "Uploading..." : value ? "Replace image" : "Upload image"}
+            {uploading ? t("admin.upload.uploading") : value ? t("admin.upload.replace") : t("admin.upload.upload")}
           </Button>
           {value && !uploading && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
-              Remove
+              {t("admin.upload.remove")}
             </Button>
           )}
         </div>
       </div>
-      <p className="text-xs text-muted-text">JPEG, PNG or WebP. Resized automatically before upload.</p>
+      <p className="text-xs text-muted-text">{t("admin.upload.hint")}</p>
       {error && <p className="text-xs text-error">{error}</p>}
     </div>
   )

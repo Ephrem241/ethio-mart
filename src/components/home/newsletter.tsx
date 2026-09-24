@@ -1,64 +1,76 @@
 "use client"
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useState } from "react"
 import { toast } from "sonner"
 
+import { useT } from "@/lib/i18n/provider"
 import { subscribeToNewsletter } from "@/lib/services/newsletter"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-const newsletterSchema = z.object({
-  email: z.email("Enter a valid email address."),
-})
-
-type NewsletterValues = z.infer<typeof newsletterSchema>
+// The same shape check the database applies (see subscribe_to_newsletter). A
+// single email field doesn't need a form library and a schema library — those
+// would add ~100KB of JavaScript to the home page for it.
+const EMAIL_SHAPE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 function Newsletter() {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<NewsletterValues>({ resolver: zodResolver(newsletterSchema) })
+  const t = useT()
+  const [email, setEmail] = useState("")
+  const [error, setError] = useState<string | undefined>()
+  const [submitting, setSubmitting] = useState(false)
 
-  async function onSubmit(values: NewsletterValues) {
-    const result = await subscribeToNewsletter(values.email)
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const value = email.trim()
+    if (!EMAIL_SHAPE.test(value)) {
+      setError(t("validation.email"))
+      return
+    }
+    setError(undefined)
+    setSubmitting(true)
+    const result = await subscribeToNewsletter(value)
+    setSubmitting(false)
     if (result.success) {
-      toast.success("You're subscribed! Thanks for joining us.")
-      reset()
+      toast.success(t("home.newsletter.success"))
+      setEmail("")
     } else {
       toast.error(result.error)
     }
   }
 
+  // Lives in the dark footer (its heading and blurb are rendered by the footer
+  // itself): a light input beside a gold button.
   return (
-    <section className="rounded-card border border-border bg-card px-6 py-10 text-center sm:px-10">
-      <h2 className="text-2xl font-semibold text-charcoal">Stay in the loop</h2>
-      <p className="mx-auto mt-2 max-w-md text-muted-text">
-        Get updates on new arrivals and special offers. No spam, unsubscribe anytime.
-      </p>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        noValidate
-        className="mx-auto mt-6 flex max-w-sm flex-col gap-2 sm:flex-row sm:items-start"
-      >
-        <div className="flex-1 text-left">
-          <Input
-            type="email"
-            placeholder="you@example.com"
-            aria-label="Email address"
-            aria-invalid={!!errors.email}
-            {...register("email")}
-          />
-          {errors.email && <p className="mt-1 text-xs text-error">{errors.email.message}</p>}
-        </div>
-        <Button type="submit" disabled={isSubmitting}>
-          Subscribe
+    // method="post": if someone submits before this component has hydrated, the
+    // browser's own submit must not put the address in the URL (a GET would).
+    <form method="post" onSubmit={handleSubmit} noValidate className="space-y-2">
+      <div className="flex gap-2">
+        <Input
+          type="email"
+          name="email"
+          autoComplete="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder={t("home.newsletter.emailPlaceholder")}
+          aria-label={t("home.newsletter.emailLabel")}
+          aria-invalid={!!error}
+          aria-describedby={error ? "newsletter-error" : undefined}
+          className="h-11 min-w-0 flex-1 border-transparent bg-white text-charcoal placeholder:text-muted-text"
+        />
+        <Button
+          type="submit"
+          disabled={submitting}
+          className="h-11 bg-gold px-5 text-forest-dark hover:bg-[color-mix(in_srgb,var(--color-gold),white_18%)]"
+        >
+          {t("home.newsletter.subscribe")}
         </Button>
-      </form>
-    </section>
+      </div>
+      {error && (
+        <p id="newsletter-error" role="alert" className="text-xs text-red-300">
+          {error}
+        </p>
+      )}
+    </form>
   )
 }
 
