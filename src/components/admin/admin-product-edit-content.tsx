@@ -19,6 +19,7 @@ function AdminProductEditContent({ productId }: { productId: string }) {
   if (!product) {
     return (
       <EmptyState
+        titleAs="h1"
         icon={PackageX}
         title={t("admin.products.notFound")}
         action={

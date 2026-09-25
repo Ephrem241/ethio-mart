@@ -21,7 +21,7 @@ export function getOrderStatusMeta(
   const label = t(`order.status.${status}`)
   switch (status) {
     case "pending":
-      return { label, className: "bg-warning/10 text-warning" }
+      return { label, className: "bg-warning/10 text-warning-text" }
     case "delivered":
       return { label, className: "bg-success/10 text-success" }
     case "cancelled":

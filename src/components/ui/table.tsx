@@ -1,9 +1,20 @@
 import * as React from "react"
 import { cn } from "cn"
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+// `label` names the scrollable wrapper. A table that can scroll sideways must be reachable by
+// keyboard (otherwise its hidden columns cannot be read without a mouse), so with a label it
+// becomes a focusable region.
+// `relative` so visually-hidden text inside the table (an sr-only header) is positioned and
+// clipped by THIS scroller; without it the hidden text sits at the table's far edge, outside
+// the clipping, and stretches the whole page sideways on a phone.
+function Table({ className, label, ...props }: React.ComponentProps<"table"> & { label?: string }) {
   return (
-    <div className="w-full overflow-x-auto rounded-card border border-border">
+    <div
+      role={label ? "region" : undefined}
+      aria-label={label}
+      tabIndex={label ? 0 : undefined}
+      className="relative w-full overflow-x-auto rounded-card border border-border outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
       <table data-slot="table" className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   )

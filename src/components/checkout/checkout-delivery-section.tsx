@@ -22,6 +22,7 @@ function CheckoutDeliverySection() {
 
       <FormField
         id="fullName"
+        required
         label={t("checkout.delivery.fullName")}
         autoComplete="name"
         registration={register("fullName")}
@@ -29,6 +30,7 @@ function CheckoutDeliverySection() {
       />
       <FormField
         id="phone"
+        required
         label={t("checkout.delivery.phone")}
         type="tel"
         autoComplete="tel"
@@ -39,6 +41,7 @@ function CheckoutDeliverySection() {
       <div className="grid gap-4 sm:grid-cols-2">
         <FormSelectField
           id="city"
+          required
           label={t("checkout.delivery.city")}
           options={deliveryCityOptions(t)}
           placeholder={t("checkout.delivery.selectCity")}
@@ -47,6 +50,7 @@ function CheckoutDeliverySection() {
         />
         <FormField
           id="subCity"
+          required
           label={t("checkout.delivery.subCity")}
           registration={register("subCity")}
           error={errors.subCity?.message}
@@ -55,12 +59,14 @@ function CheckoutDeliverySection() {
 
       <FormField
         id="woreda"
+        required
         label={t("checkout.delivery.woreda")}
         registration={register("woreda")}
         error={errors.woreda?.message}
       />
       <FormField
         id="address"
+        required
         label={t("checkout.delivery.address")}
         registration={register("address")}
         error={errors.address?.message}
@@ -70,8 +76,17 @@ function CheckoutDeliverySection() {
         <label htmlFor="notes" className="text-sm font-medium text-charcoal">
           {t("checkout.delivery.notes")} <span className="text-muted-text">{t("common.optionalHint")}</span>
         </label>
-        <Textarea id="notes" {...register("notes")} />
-        {errors.notes && <p className="text-xs text-error">{errors.notes.message}</p>}
+        <Textarea
+          id="notes"
+          aria-invalid={!!errors.notes}
+          aria-describedby={errors.notes ? "notes-error" : undefined}
+          {...register("notes")}
+        />
+        {errors.notes && (
+          <p id="notes-error" role="alert" className="text-xs text-error">
+            {errors.notes.message}
+          </p>
+        )}
       </div>
     </CheckoutStep>
   )

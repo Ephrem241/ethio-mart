@@ -19,6 +19,7 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
   return (
     <div className="py-16">
       <EmptyState
+        titleAs="h1"
         icon={AlertTriangle}
         title={t("common.somethingWentWrong")}
         action={<Button onClick={reset}>{t("common.retry")}</Button>}

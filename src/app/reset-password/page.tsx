@@ -22,7 +22,7 @@ export default async function ResetPasswordPage() {
       footer={
         <p>
           {t("auth.reset.linkNotWorking")}{" "}
-          <Link href="/forgot-password" className="text-forest hover:underline">
+          <Link href="/forgot-password" className="text-forest underline underline-offset-4 hover:decoration-2">
             {t("auth.reset.requestNew")}
           </Link>
         </p>

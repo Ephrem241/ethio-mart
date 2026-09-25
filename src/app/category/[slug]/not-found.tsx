@@ -9,6 +9,7 @@ export default async function CategoryNotFound() {
   return (
     <div className="py-16">
       <EmptyState
+        titleAs="h1"
         icon={PackageX}
         title={t("catalog.categoryNotFound")}
         description={t("catalog.categoryNotFoundText")}

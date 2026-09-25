@@ -17,6 +17,10 @@ export const nav = {
   language: "Language",
   wishlist: "Wishlist",
   shopAll: "Shop All",
+  // The first link on every page: lets keyboard users jump past the header.
+  skipToContent: "Skip to main content",
+  // Accessible name of the thin bar above the header.
+  announcementsLabel: "Store announcements",
   // The thin bar above the header. {amount} is an already-formatted price.
   announcement: {
     freeDelivery: "Free delivery on orders over {amount}",
@@ -33,6 +37,11 @@ export const search = {
   recent: "Recent searches",
   categories: "Categories",
   products: "Products",
+  // Read out when suggestions appear under the field (they are otherwise silent).
+  suggestionCount: {
+    one: "{count} suggestion available. Press the down arrow to browse.",
+    other: "{count} suggestions available. Press the down arrow to browse.",
+  },
 }
 
 export const footer = {

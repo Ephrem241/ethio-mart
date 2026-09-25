@@ -34,6 +34,7 @@ function AddressForm({
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="address-fullName"
+        required
         label={t("checkout.delivery.fullName")}
         autoComplete="name"
         registration={register("fullName")}
@@ -41,6 +42,7 @@ function AddressForm({
       />
       <FormField
         id="address-phone"
+        required
         label={t("checkout.delivery.phone")}
         type="tel"
         autoComplete="tel"
@@ -50,6 +52,7 @@ function AddressForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <FormSelectField
           id="address-city"
+          required
           label={t("checkout.delivery.city")}
           options={deliveryCityOptions(t)}
           placeholder={t("checkout.delivery.selectCity")}
@@ -58,6 +61,7 @@ function AddressForm({
         />
         <FormField
           id="address-subCity"
+          required
           label={t("checkout.delivery.subCity")}
           registration={register("subCity")}
           error={errors.subCity?.message}
@@ -65,12 +69,14 @@ function AddressForm({
       </div>
       <FormField
         id="address-woreda"
+        required
         label={t("checkout.delivery.woreda")}
         registration={register("woreda")}
         error={errors.woreda?.message}
       />
       <FormField
         id="address-address"
+        required
         label={t("checkout.delivery.address")}
         registration={register("address")}
         error={errors.address?.message}
@@ -79,8 +85,17 @@ function AddressForm({
         <label htmlFor="address-notes" className="text-sm font-medium text-charcoal">
           {t("account.addresses.formNotes")} <span className="text-muted-text">{t("common.optionalHint")}</span>
         </label>
-        <Textarea id="address-notes" {...register("notes")} />
-        {errors.notes && <p className="text-xs text-error">{errors.notes.message}</p>}
+        <Textarea
+          id="address-notes"
+          aria-invalid={!!errors.notes}
+          aria-describedby={errors.notes ? "address-notes-error" : undefined}
+          {...register("notes")}
+        />
+        {errors.notes && (
+          <p id="address-notes-error" role="alert" className="text-xs text-error">
+            {errors.notes.message}
+          </p>
+        )}
       </div>
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>

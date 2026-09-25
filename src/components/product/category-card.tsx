@@ -33,7 +33,7 @@ async function CategoryCard({
           label={name}
           imageUrl={category.image_url || null}
           sizes={sizes}
-          aspectClassName="aspect-[4/5]"
+          aspectClassName="aspect-[4/3]"
           className="transition-transform duration-500 group-hover:scale-105"
         />
       </div>

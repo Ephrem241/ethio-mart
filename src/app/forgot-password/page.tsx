@@ -28,7 +28,7 @@ export default async function ForgotPasswordPage({
       footer={
         <p>
           {t("auth.forgot.remembered")}{" "}
-          <Link href="/login" className="text-forest hover:underline">
+          <Link href="/login" className="text-forest underline underline-offset-4 hover:decoration-2">
             {t("auth.forgot.login")}
           </Link>
         </p>

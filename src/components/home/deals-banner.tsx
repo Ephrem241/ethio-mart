@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
 import { getT } from "@/lib/i18n/server"
-import { remainingUntil, type HomepageSettings } from "@/lib/services/homepage"
+import { endOfDayInAddis, remainingUntil, type HomepageSettings } from "@/lib/services/homepage"
 import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/reveal"
 import { DealsCountdown } from "@/components/home/deals-countdown"
@@ -13,15 +13,16 @@ import { DealsCountdown } from "@/components/home/deals-countdown"
 // copy (homepage_sections.promo); "Up to {maxDiscount}% Off" is filled with the
 // real biggest discount by the page before it gets here.
 //
-// The countdown is shown ONLY for a real end date that is still in the future.
-// With no end date there is simply no countdown (and no "limited time" claim);
-// the button is the call to action.
+// The countdown runs to the admin's end date while it is still in the future;
+// otherwise to midnight in Addis Ababa, the end of "today's" deals, rolling on
+// to the next midnight when it gets there.
 async function DealsBanner({ settings }: { settings: HomepageSettings }) {
   const t = await getT()
 
   // Server time is only used for the first paint; the browser then keeps its own.
-  const remaining = remainingUntil(settings.promoEndsAt)
-  const showCountdown = remaining > 0
+  const hasEndDate = remainingUntil(settings.promoEndsAt) > 0
+  const endsAt = hasEndDate ? settings.promoEndsAt : endOfDayInAddis()
+  const remaining = remainingUntil(endsAt)
 
   return (
     <Reveal>
@@ -69,11 +70,9 @@ async function DealsBanner({ settings }: { settings: HomepageSettings }) {
           />
         </div>
 
-        {showCountdown && (
-          <div className="relative z-10 px-6 pt-5 pb-7 sm:px-10 lg:absolute lg:top-8 lg:right-8 lg:p-0">
-            <DealsCountdown endsAt={settings.promoEndsAt} initialRemainingMs={remaining} />
-          </div>
-        )}
+        <div className="relative z-10 px-6 pt-5 pb-7 sm:px-10 lg:absolute lg:top-8 lg:right-8 lg:p-0">
+          <DealsCountdown endsAt={endsAt} initialRemainingMs={remaining} rolling={!hasEndDate} />
+        </div>
       </section>
     </Reveal>
   )

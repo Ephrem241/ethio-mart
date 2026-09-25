@@ -25,6 +25,7 @@ function OrderSuccessContent({ orderId }: { orderId: string }) {
   if (!order) {
     return (
       <EmptyState
+        titleAs="h1"
         icon={PackageX}
         title={t("order.notFound")}
         description={t("order.notFoundShort")}

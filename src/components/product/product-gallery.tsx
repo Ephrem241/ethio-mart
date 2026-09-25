@@ -7,7 +7,7 @@ import { cn } from "cn"
 import { useT } from "@/lib/i18n/provider"
 import { ImagePlaceholder } from "@/components/product/image-placeholder"
 import { getCategoryIcon } from "@/components/product/category-icons"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 
 // Takes categorySlug (a plain string) rather than the resolved icon
 // component: a Server Component parent can't pass a raw component
@@ -95,7 +95,8 @@ function ProductGallery({
       </div>
 
       {many && (
-        <div className="flex justify-center gap-1.5 lg:hidden">
+        // Decorative: each slide's own button already says "image i of N".
+        <div aria-hidden className="flex justify-center gap-1.5 lg:hidden">
           {views.map((_, i) => (
             <span
               key={`${productId}-dot-${i}`}
@@ -131,7 +132,10 @@ function ProductGallery({
       )}
 
       <Dialog open={zoomOpen} onOpenChange={setZoomOpen}>
-        <DialogContent className="sm:max-w-lg">
+        {/* The photo carries its own text alternative, so no separate description. */}
+        <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
+          {/* Names the dialog for screen readers; the picture is the visible content. */}
+          <DialogTitle className="sr-only">{productName}</DialogTitle>
           <ImagePlaceholder
             seed={`${productId}-${activeIndex}`}
             icon={Icon}

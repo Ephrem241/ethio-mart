@@ -75,7 +75,7 @@ function CheckoutReviewSection({
       </div>
 
       {insufficientStock.length > 0 && (
-        <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-sm text-warning">
+        <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-sm text-warning-text">
           <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
           {t("checkout.review.insufficientStock", {
             names: insufficientStock.map(({ product }) => nameOf(product, t.locale)).join(", "),
@@ -83,7 +83,7 @@ function CheckoutReviewSection({
         </p>
       )}
       {unavailableLines.length > 0 && (
-        <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-sm text-warning">
+        <p className="flex items-start gap-2 rounded-lg bg-warning/10 p-3 text-sm text-warning-text">
           <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
           {t("checkout.review.unavailable")}
         </p>

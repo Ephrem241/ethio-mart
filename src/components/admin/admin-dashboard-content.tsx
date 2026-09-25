@@ -59,7 +59,7 @@ function AdminDashboardContent() {
               {stats.lowStockProducts.map((p) => (
                 <li key={p.id} className="flex items-center justify-between text-sm">
                   <span className="text-charcoal">{nameOf(p, t.locale)}</span>
-                  <span className="text-warning">{t("admin.dashboard.left", { count: p.stock })}</span>
+                  <span className="text-warning-text">{t("admin.dashboard.left", { count: p.stock })}</span>
                 </li>
               ))}
             </ul>

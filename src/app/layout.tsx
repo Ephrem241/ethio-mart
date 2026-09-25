@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
-import { getDictionary, getLocale, getT } from "@/lib/i18n/server";
+import { getClientDictionary, getLocale, getT } from "@/lib/i18n/server";
 import { LocaleProvider } from "@/lib/i18n/provider";
 import { OG_LOCALE } from "@/lib/seo/metadata";
 import { SITE_NAME, SITE_URL } from "@/lib/seo/site";
@@ -84,7 +84,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
-  const dictionary = await getDictionary(locale);
+  const dictionary = await getClientDictionary(locale);
+  const t = await getT();
 
   return (
     <html
@@ -94,11 +95,20 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body>
         <LocaleProvider locale={locale} dictionary={dictionary}>
           <MotionProvider>
+            {/* The first tab stop on every page: keyboard and screen-reader users
+                jump past the announcement bar, header and search to the page. It
+                is invisible until it has focus. */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-forest-dark focus:shadow-lift focus:ring-2 focus:ring-gold focus:outline-none"
+            >
+              {t("nav.skipToContent")}
+            </a>
             <div className="flex min-h-dvh flex-col">
               <AnnouncementBar />
               <Header />
               <MobileHeader />
-              <main className="flex-1">
+              <main id="main-content" tabIndex={-1} className="flex-1 overflow-x-clip outline-none">
                 <Container>{children}</Container>
               </main>
               <Footer />

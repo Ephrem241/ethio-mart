@@ -32,9 +32,9 @@ export interface HomepageSettings {
   promoCtaLabelAm: string
   promoCtaHref: string
   /**
-   * When the special deal ends, as an ISO date-time ("" = no end date). The
-   * homepage shows a live countdown ONLY when this is set and still in the
-   * future — a countdown is never invented.
+   * When the special deal ends, as an ISO date-time ("" = no end date). While
+   * it is in the future the homepage counts down to it; otherwise the banner
+   * counts down to the end of the day in Addis Ababa ("Today's Special Deals").
    */
   promoEndsAt: string
 }
@@ -156,6 +156,18 @@ export function sectionsFromSettings(s: HomepageSettings): HomepageSectionRow[] 
 export function remainingUntil(endsAtIso: string): number {
   const end = endsAtIso ? Date.parse(endsAtIso) : NaN
   return Number.isNaN(end) ? 0 : Math.max(0, end - Date.now())
+}
+
+// Ethiopia is UTC+3 all year (no daylight saving), so "midnight in Addis
+// Ababa" is a fixed offset from UTC.
+const ADDIS_OFFSET_MS = 3 * 60 * 60 * 1000
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** The next midnight in Addis Ababa, as an ISO date-time: when "today's" deals end. */
+export function endOfDayInAddis(now: number = Date.now()): string {
+  const addisNow = now + ADDIS_OFFSET_MS
+  const nextAddisMidnight = (Math.floor(addisNow / DAY_MS) + 1) * DAY_MS
+  return new Date(nextAddisMidnight - ADDIS_OFFSET_MS).toISOString()
 }
 
 // Replaces `{maxDiscount}` in the promo headline and subtext with the real

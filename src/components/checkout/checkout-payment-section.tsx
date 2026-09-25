@@ -17,7 +17,14 @@ function CheckoutPaymentSection() {
 
   return (
     <CheckoutStep number={2} title={t("checkout.payment.title")}>
-      <div className="space-y-2.5">
+      {/* One group for the options, named by the step heading ("Payment method"). */}
+      <div
+        role="radiogroup"
+        aria-labelledby="checkout-step-2"
+        aria-required="true"
+        aria-describedby={errors.paymentMethod ? "payment-error" : undefined}
+        className="space-y-2.5"
+      >
         {paymentProviders.map((provider) => (
           <label
             key={provider.id}
@@ -43,7 +50,9 @@ function CheckoutPaymentSection() {
         ))}
       </div>
       {errors.paymentMethod && (
-        <p className="text-xs text-error">{errors.paymentMethod.message}</p>
+        <p id="payment-error" role="alert" className="text-xs text-error">
+          {errors.paymentMethod.message}
+        </p>
       )}
     </CheckoutStep>
   )

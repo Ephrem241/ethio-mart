@@ -36,6 +36,7 @@ function ProfileForm({ user }: { user: AuthUser }) {
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="fullName"
+        required
         label={t("account.profile.fullName")}
         autoComplete="name"
         registration={register("fullName")}

@@ -35,7 +35,7 @@ export default async function RegisterPage({
           {t("auth.register.haveAccount")}{" "}
           <Link
             href={`/login?redirect=${encodeURIComponent(redirectTo)}`}
-            className="text-forest hover:underline"
+            className="text-forest underline underline-offset-4 hover:decoration-2"
           >
             {t("auth.register.login")}
           </Link>

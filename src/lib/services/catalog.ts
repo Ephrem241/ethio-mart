@@ -59,7 +59,7 @@ export function isOnSale(product: Product): boolean {
 
 export function getStockStatus(stock: number, t: Translator): { label: string; className: string } {
   if (stock <= 0) return { label: t("product.stock.out"), className: "text-error" }
-  if (stock <= 5) return { label: t("product.stock.low", { count: stock }), className: "text-warning" }
+  if (stock <= 5) return { label: t("product.stock.low", { count: stock }), className: "text-warning-text" }
   return { label: t("product.stock.in"), className: "text-success" }
 }
 

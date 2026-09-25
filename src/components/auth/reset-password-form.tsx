@@ -44,6 +44,7 @@ function ResetPasswordForm() {
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="newPassword"
+        required
         label={t("auth.fields.newPassword")}
         type="password"
         autoComplete="new-password"

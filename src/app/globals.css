@@ -22,6 +22,7 @@
     --color-muted-text: var(--color-muted-text);
     --color-success: var(--color-success);
     --color-warning: var(--color-warning);
+    --color-warning-text: var(--color-warning-text);
     --color-error: var(--color-error);
     --radius-card: 1.25rem;
     --radius-image: 1.125rem;
@@ -80,9 +81,10 @@
     --color-sand: #E3D2BD;
     --color-gold: #C9A15B;
     --color-charcoal: #171717;
-    --color-muted-text: #706B64;
+    --color-muted-text: #6B665F; /* 4.85:1 on the darkest surface it sits on (WCAG AA) */
     --color-success: #267A55;
-    --color-warning: #B7791F;
+    --color-warning: #B7791F; /* icons, fills and tints */
+    --color-warning-text: #8F5F0F; /* text on light surfaces, 4.6:1+ (the amber above is only 3.1:1) */
     --color-error: #B42318;
 
     /* semantic tokens consumed by shadcn components */
@@ -102,7 +104,7 @@
     --accent-foreground: var(--color-charcoal);
     --destructive: var(--color-error);
     --border: #E5DED4;
-    --input: #E5DED4;
+    --input: #8C867C; /* form-control borders + switch track: 3:1+ (WCAG 1.4.11); --border stays light */
     --ring: var(--color-forest);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);

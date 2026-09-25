@@ -13,6 +13,7 @@ export default async function NotFound() {
   return (
     <div className="py-16">
       <EmptyState
+        titleAs="h1"
         icon={FileQuestion}
         title={t("common.pageNotFound")}
         description={t("common.pageNotFoundText")}

@@ -30,7 +30,7 @@ async function NewArrivals({ products }: { products: ProductWithCategory[] }) {
         <div
           id={RAIL_ID}
           role="region"
-          aria-label={t("home.newArrivalsTitle")}
+          aria-label={t("home.carousel.rail", { title: t("home.newArrivalsTitle") })}
           tabIndex={0}
           className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pt-1 pb-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:mx-0 sm:gap-4 sm:px-0 [&>*]:shrink-0 [&>*]:snap-start"
         >

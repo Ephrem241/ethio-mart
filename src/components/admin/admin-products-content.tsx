@@ -62,7 +62,7 @@ function AdminProductsContent() {
         </Button>
       </div>
 
-      <Table>
+      <Table label={t("admin.products.title")}>
         <TableHeader>
           <TableRow>
             <TableHead>{t("admin.products.columns.product")}</TableHead>
@@ -72,7 +72,9 @@ function AdminProductsContent() {
             <TableHead>{t("admin.products.columns.stock")}</TableHead>
             <TableHead>{t("admin.products.columns.featured")}</TableHead>
             <TableHead>{t("admin.products.columns.active")}</TableHead>
-            <TableHead></TableHead>
+            <TableHead>
+              <span className="sr-only">{t("common.actions")}</span>
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -88,6 +90,7 @@ function AdminProductsContent() {
                         seed={product.id}
                         icon={getCategoryIcon(category?.slug ?? "")}
                         label={productName}
+                        decorative
                         imageUrl={product.image_url}
                         sizes="40px"
                       />

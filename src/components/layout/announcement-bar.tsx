@@ -20,7 +20,8 @@ async function AnnouncementBar() {
   const welcome = t("nav.announcement.welcome", { brand: BRAND_NAME })
 
   return (
-    <div className="bg-forest-dark text-[13px] leading-none text-white/90">
+    // A named region, so its text is inside a landmark like the rest of the page.
+    <section aria-label={t("nav.announcementsLabel")} className="bg-forest-dark text-[13px] leading-none text-white/90">
       <Container className="flex h-9 items-center justify-center lg:grid lg:grid-cols-[1fr_auto_1fr]">
         <p className="flex items-center gap-2 truncate lg:hidden">
           {freeDelivery && <Truck aria-hidden className="size-3.5 shrink-0 text-gold" />}
@@ -48,7 +49,7 @@ async function AnnouncementBar() {
           </span>
         </p>
       </Container>
-    </div>
+    </section>
   )
 }
 

@@ -26,6 +26,16 @@ export async function getDictionary(locale: Locale): Promise<Dictionary> {
   return loaders[locale]()
 }
 
+// What the browser receives (LocaleProvider). Namespaces that only Server
+// Components read are left out — the footer information pages (`info`) are the
+// biggest namespace and no Client Component uses them, so they would only add
+// weight to every page. A Client Component that needs one must be given it as a
+// prop, or the namespace removed from this list; `t("info.…")` in the browser
+// returns the key.
+export async function getClientDictionary(locale: Locale): Promise<Dictionary> {
+  return { ...(await getDictionary(locale)), info: {} as Dictionary["info"] }
+}
+
 // `const t = await getT()` in any Server Component or generateMetadata.
 export async function getT(): Promise<Translator> {
   const locale = await getLocale()

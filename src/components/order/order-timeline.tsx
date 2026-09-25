@@ -28,7 +28,7 @@ function OrderTimeline({ history }: { history: OrderStatusEvent[] }) {
           const Icon = STATUS_ICONS[event.status]
           const isLatest = index === history.length - 1
           return (
-            <li key={`${event.status}-${event.at}`} className="flex gap-3">
+            <li key={`${event.status}-${event.at}`} aria-current={isLatest ? "step" : undefined} className="flex gap-3">
               <Icon
                 aria-hidden
                 className={isLatest ? "size-5 shrink-0 text-forest" : "size-5 shrink-0 text-muted-text"}

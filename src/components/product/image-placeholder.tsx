@@ -30,6 +30,7 @@ function ImagePlaceholder({
   sizes = "100vw",
   eager,
   aspectClassName = "aspect-square",
+  decorative = false,
   className,
 }: {
   seed: string
@@ -52,14 +53,20 @@ function ImagePlaceholder({
   /** Load immediately instead of lazily: for the image the page opens with. */
   eager?: boolean
   aspectClassName?: string
+  /**
+   * The picture repeats a name shown right next to it (a table row, a list
+   * item), so it is hidden from assistive technology instead of being read twice.
+   */
+  decorative?: boolean
   className?: string
 }) {
   const gradient = GRADIENTS[hashString(seed) % GRADIENTS.length]
 
   return (
     <div
-      role="img"
-      aria-label={label}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : label}
+      aria-hidden={decorative || undefined}
       className={cn(
         "relative flex items-center justify-center overflow-hidden rounded-image",
         aspectClassName,
@@ -68,7 +75,7 @@ function ImagePlaceholder({
       )}
     >
       <Icon aria-hidden className="size-10 text-forest/40" />
-      {imageUrl && <RemoteProductImage src={imageUrl} alt={label} sizes={sizes} eager={eager} />}
+      {imageUrl && <RemoteProductImage src={imageUrl} alt={decorative ? "" : label} sizes={sizes} eager={eager} />}
     </div>
   )
 }

@@ -18,6 +18,8 @@ export const nav: Dictionary["nav"] = {
   language: "ቋንቋ",
   wishlist: "የምኞት ዝርዝር",
   shopAll: "ሁሉንም ይግዙ",
+  skipToContent: "ወደ ዋናው ይዘት ዝለል",
+  announcementsLabel: "የሱቅ ማስታወቂያዎች",
   announcement: {
     freeDelivery: "ከ{amount} በላይ ለሆኑ ትዕዛዞች ነፃ ማድረስ",
     welcome: "ወደ {brand} እንኳን በደህና መጡ — የእርስዎ ታማኝ የመስመር ላይ ገበያ",
@@ -33,6 +35,10 @@ export const search: Dictionary["search"] = {
   recent: "የቅርብ ጊዜ ፍለጋዎች",
   categories: "ምድቦች",
   products: "ምርቶች",
+  suggestionCount: {
+    one: "{count} አስተያየት አለ። ለማሰስ የታች ቀስቱን ይጫኑ።",
+    other: "{count} አስተያየቶች አሉ። ለማሰስ የታች ቀስቱን ይጫኑ።",
+  },
 }
 
 export const footer: Dictionary["footer"] = {

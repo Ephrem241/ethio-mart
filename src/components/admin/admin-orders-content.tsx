@@ -16,6 +16,7 @@ import { formatOrderDate } from "@/lib/date"
 import { formatPrice } from "@/lib/currency"
 import { OrderStatus } from "@/components/order/order-status"
 import { EmptyState } from "@/components/feedback/empty-state"
+import { CommitSelect } from "@/components/forms/commit-select"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 
 function AdminOrdersContent() {
@@ -44,7 +45,7 @@ function AdminOrdersContent() {
   }
 
   return (
-    <Table>
+    <Table label={t("admin.orders.title")}>
       <TableHeader>
         <TableRow>
           <TableHead>{t("admin.orders.columns.order")}</TableHead>
@@ -53,7 +54,9 @@ function AdminOrdersContent() {
           <TableHead>{t("admin.orders.columns.total")}</TableHead>
           <TableHead>{t("admin.orders.columns.payment")}</TableHead>
           <TableHead>{t("admin.orders.columns.status")}</TableHead>
-          <TableHead></TableHead>
+          <TableHead>
+            <span className="sr-only">{t("common.actions")}</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -75,19 +78,19 @@ function AdminOrdersContent() {
               <TableCell>
                 <div className="flex items-center gap-2">
                   <OrderStatus status={order.status} />
-                  <select
+                  <CommitSelect
                     value={order.status}
                     disabled={isTerminal}
-                    onChange={(e) => handleStatusChange(order.id, e.target.value as Status)}
+                    onCommit={(next) => handleStatusChange(order.id, next as Status)}
                     aria-label={t("admin.orders.changeStatus", { number: order.order_number })}
-                    className="h-7 rounded-lg border border-input bg-transparent px-1.5 text-xs text-charcoal outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-7 rounded-lg border border-input bg-transparent px-1.5 text-xs text-charcoal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {ORDER_STATUSES.map((status) => (
                       <option key={status} value={status}>
                         {t(`order.status.${status}`)}
                       </option>
                     ))}
-                  </select>
+                  </CommitSelect>
                 </div>
               </TableCell>
               <TableCell>

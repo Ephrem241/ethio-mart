@@ -40,7 +40,7 @@ const NON_UI_ATTRS = new Set([
   "position", "richColors", "theme", "toastOptions", "closeButton", "expand", "visibleToasts", "icons",
   "iconName", "icon", "field", "hrefBase", "paramName", "namespace", "unoptimized", "priority", "fill",
   "mode", "layout", "layoutId", "initial", "animate", "exit", "transition", "whileHover", "whileTap",
-  "reducedMotion", "features", "strict", "tone", "sort", "basePath", "aspectClassName", "labels", "bucket", "step", "min", "max", "pattern", "rows", "cols", "wrap", "spellCheck", "list", "form", "formAction",
+  "reducedMotion", "features", "strict", "tone", "titleAs", "sort", "basePath", "aspectClassName", "labels", "bucket", "step", "min", "max", "pattern", "rows", "cols", "wrap", "spellCheck", "list", "form", "formAction",
   "formMethod", "scope", "kind", "srcSet", "media", "content", "property", "httpEquiv", "charSet", "sm", "md",
 ])
 

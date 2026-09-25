@@ -18,6 +18,7 @@ import { OrderDeliveryAddressSection } from "@/components/order/order-delivery-a
 import { OrderPaymentSection } from "@/components/order/order-payment-section"
 import { OrderTimeline } from "@/components/order/order-timeline"
 import { EmptyState } from "@/components/feedback/empty-state"
+import { CommitSelect } from "@/components/forms/commit-select"
 import { Button } from "@/components/ui/button"
 
 // Reuses the exact Phase 9 presentational components the customer-facing
@@ -37,6 +38,7 @@ function AdminOrderDetailContent({ orderId }: { orderId: string }) {
   if (!order) {
     return (
       <EmptyState
+        titleAs="h1"
         icon={PackageX}
         title={t("order.notFound")}
         action={
@@ -68,19 +70,19 @@ function AdminOrderDetailContent({ orderId }: { orderId: string }) {
         </div>
         <div className="flex items-center gap-2">
           <OrderStatus status={order.status} />
-          <select
+          <CommitSelect
             value={order.status}
             disabled={isTerminal}
-            onChange={(e) => handleStatusChange(e.target.value as Status)}
+            onCommit={(next) => handleStatusChange(next as Status)}
             aria-label={t("admin.orders.changeStatusShort")}
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm text-charcoal outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm text-charcoal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {ORDER_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {t(`order.status.${status}`)}
               </option>
             ))}
-          </select>
+          </CommitSelect>
         </div>
       </div>
 

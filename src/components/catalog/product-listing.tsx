@@ -70,10 +70,14 @@ async function ProductListing({
 
       <div className="flex-1 space-y-6">
         <div className="hidden items-center justify-between lg:flex">
-          <p className="text-sm text-muted-text">{resultSummary}</p>
+          <p role="status" className="text-sm text-muted-text">
+            {resultSummary}
+          </p>
           <SortSelect value={sort} rawParams={rawParams} basePath={basePath} />
         </div>
-        <p className="text-sm text-muted-text lg:hidden">{resultSummary}</p>
+        <p role="status" className="text-sm text-muted-text lg:hidden">
+          {resultSummary}
+        </p>
 
         {products.length === 0 ? (
           <EmptyState

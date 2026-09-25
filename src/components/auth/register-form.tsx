@@ -46,6 +46,7 @@ function RegisterForm({ redirectTo }: { redirectTo: string }) {
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="fullName"
+        required
         label={t("auth.fields.fullName")}
         autoComplete="name"
         registration={register("fullName")}
@@ -53,6 +54,7 @@ function RegisterForm({ redirectTo }: { redirectTo: string }) {
       />
       <FormField
         id="email"
+        required
         label={t("auth.fields.email")}
         type="email"
         autoComplete="email"
@@ -61,6 +63,7 @@ function RegisterForm({ redirectTo }: { redirectTo: string }) {
       />
       <FormField
         id="password"
+        required
         label={t("auth.fields.password")}
         type="password"
         autoComplete="new-password"

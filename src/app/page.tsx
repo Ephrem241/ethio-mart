@@ -20,6 +20,7 @@ import { DealsBanner } from "@/components/home/deals-banner"
 import { NewArrivals } from "@/components/home/new-arrivals"
 import { TrustSection } from "@/components/home/trust-section"
 import { LifestyleBanner } from "@/components/home/lifestyle-banner"
+import { PaymentMethods } from "@/components/home/payment-methods"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT()
@@ -32,9 +33,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // The homepage, in the order a shopper reads it: hero, categories, featured
-// products, special deals, new arrivals, why us, the closing banner (the footer
-// follows from the layout). Everything is read from the database — the copy,
-// the categories, the products and the size of the deal.
+// products, special deals, new arrivals, why us, the closing banner and the
+// ways to pay (the footer follows from the layout). Everything is read from
+// the database — the copy, the categories, the products and the size of the
+// deal. The hero is full-bleed: it breaks out of the layout's Container and
+// cancels this wrapper's top padding itself.
 export default async function Home() {
   const [locale, categories, featured, newArrivals, deals, rawSettings] = await Promise.all([
     getLocale(),
@@ -58,6 +61,7 @@ export default async function Home() {
       <NewArrivals products={newArrivals} />
       <TrustSection />
       <LifestyleBanner />
+      <PaymentMethods />
     </div>
   )
 }

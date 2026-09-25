@@ -8,12 +8,15 @@ import { cn } from "cn"
 function EmptyState({
   icon: Icon,
   title,
+  titleAs: Title = "p",
   description,
   action,
   className,
 }: {
   icon: LucideIcon
   title: string
+  /** Use "h1" when this state IS the whole page (a 404, an error), so the page has a heading. */
+  titleAs?: "h1" | "h2" | "p"
   description?: string
   action?: ReactNode
   className?: string
@@ -29,7 +32,7 @@ function EmptyState({
         <Icon aria-hidden className="size-8 text-forest" strokeWidth={1.5} />
       </span>
       <div className="space-y-1.5">
-        <p className="font-display text-xl font-semibold text-charcoal">{title}</p>
+        <Title className="font-display text-xl font-semibold text-charcoal">{title}</Title>
         {description && <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted-text">{description}</p>}
       </div>
       {action}

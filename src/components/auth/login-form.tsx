@@ -45,6 +45,7 @@ function LoginForm({ redirectTo }: { redirectTo: string }) {
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="email"
+        required
         label={t("auth.fields.email")}
         type="email"
         autoComplete="email"
@@ -53,13 +54,18 @@ function LoginForm({ redirectTo }: { redirectTo: string }) {
       />
       <FormField
         id="password"
+        required
         label={t("auth.fields.password")}
         type="password"
         autoComplete="current-password"
         registration={register("password")}
         error={errors.password?.message}
       />
-      {errors.root && <p className="text-sm text-error">{errors.root.message}</p>}
+      {errors.root && (
+        <p role="alert" className="text-sm text-error">
+          {errors.root.message}
+        </p>
+      )}
       <Button type="submit" className="w-full" disabled={isSubmitting}>
         {t("auth.login.submit")}
       </Button>

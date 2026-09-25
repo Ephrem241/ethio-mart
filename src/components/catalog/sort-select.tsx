@@ -6,6 +6,7 @@ import { cn } from "cn"
 import { useT } from "@/lib/i18n/provider"
 import type { SortOption } from "@/lib/services/catalog"
 import { buildSortUrl, type RawParams } from "@/components/catalog/listing-url"
+import { CommitSelect } from "@/components/forms/commit-select"
 
 const SORT_OPTIONS: SortOption[] = ["recommended", "newest", "price-asc", "price-desc", "popular"]
 
@@ -24,9 +25,9 @@ function SortSelect({
   const router = useRouter()
 
   return (
-    <select
+    <CommitSelect
       value={value}
-      onChange={(e) => router.push(buildSortUrl(basePath, rawParams, e.target.value))}
+      onCommit={(next) => router.push(buildSortUrl(basePath, rawParams, next))}
       aria-label={t("catalog.sort.label")}
       className={cn(
         "h-10 rounded-xl border border-input bg-card px-3 text-sm text-charcoal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -38,7 +39,7 @@ function SortSelect({
           {t(`catalog.sort.${key}`)}
         </option>
       ))}
-    </select>
+    </CommitSelect>
   )
 }
 

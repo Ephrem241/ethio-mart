@@ -36,7 +36,7 @@ function AccountSettingsContent() {
           // account has none — it only ever signed in with Google.
           <p className="text-sm text-muted-text">
             {t("account.settings.googleOnly")}{" "}
-            <Link href="/forgot-password" className="text-forest hover:underline">
+            <Link href="/forgot-password" className="text-forest underline underline-offset-4 hover:decoration-2">
               {t("auth.login.forgot")}
             </Link>
           </p>

@@ -30,7 +30,7 @@ function AdminCustomersContent() {
   }
 
   return (
-    <Table>
+    <Table label={t("admin.customers.title")}>
       <TableHeader>
         <TableRow>
           <TableHead>{t("admin.customers.columns.customer")}</TableHead>

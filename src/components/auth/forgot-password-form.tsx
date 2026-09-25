@@ -47,12 +47,13 @@ function ForgotPasswordForm({ linkExpired = false }: { linkExpired?: boolean }) 
   return (
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {linkExpired && (
-        <p className="rounded-lg bg-warning/10 p-3 text-sm text-warning">
+        <p className="rounded-lg bg-warning/10 p-3 text-sm text-warning-text">
           {t("auth.forgot.expired")}
         </p>
       )}
       <FormField
         id="email"
+        required
         label={t("auth.fields.email")}
         type="email"
         autoComplete="email"

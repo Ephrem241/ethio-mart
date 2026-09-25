@@ -4,7 +4,7 @@ import type { Dictionary } from "@/locales/en"
 // (the same caveat as the rest of this folder).
 export const home: Dictionary["home"] = {
   hero: {
-    imageAlt: "ክሬም ቀለም ያለው ሶፋ፣ የተሸመኑ ጨርቆች፣ ተፈጥሯዊ እንጨትና ዕፅዋት ያሉት ብሩህ የመኖሪያ ክፍል",
+    imageAlt: "ክሬም ቀለም ያለው ሶፋ፣ አረንጓዴና ቡናማ ትራሶች፣ ክብ የእንጨት ጠረጴዛና ዕፅዋት ያሉት በፀሐይ የበራ የመኖሪያ ክፍል",
   },
   categoriesTitle: "በምድብ ይግዙ",
   viewAll: "ሁሉንም ይመልከቱ",
@@ -14,6 +14,7 @@ export const home: Dictionary["home"] = {
   carousel: {
     previous: "ቀዳሚ ምርቶች",
     next: "ቀጣይ ምርቶች",
+    rail: "{title}፣ ተንሸራታች ዝርዝር",
   },
   deals: {
     imageAlt: "የመዳብ ድስቶች፣ የተሸመኑ የተንጠለጠሉ መብራቶችና የእንጨት ጠረጴዛ ያሉት ሞቅ ያለ ወጥ ቤት",
@@ -45,6 +46,15 @@ export const home: Dictionary["home"] = {
     text: "ቤትዎን፣ ወጥ ቤትዎንና አኗኗርዎን የሚያሻሽሉ ምርቶችን ያግኙ።",
     cta: "ስብስቡን ይግዙ",
     imageAlt: "ዕፅዋት፣ የእንጨት መደርደሪያና ከበስተጀርባ ወጥ ቤት ያለው ብሩህ ክፍት ቦታ",
+  },
+  payments: {
+    title: "በመረጡት መንገድ ይክፈሉ",
+    text: "ትዕዛዝዎ ሲደርስ በጥሬ ገንዘብ ይክፈሉ። በኢትዮጵያ ባንኮችና በሞባይል ገንዘብ መክፈል በቅርቡ ይጀምራል።",
+    cod: "ሲደርስ በጥሬ ገንዘብ ክፍያ",
+    available: "አሁን ይገኛል",
+    comingSoon: "በቅርቡ",
+    listLabel: "የክፍያ አማራጮች",
+    weAccept: "የምንቀበለው፦ {methods}",
   },
   newsletter: {
     title: "ወቅታዊ መረጃ ያግኙ",

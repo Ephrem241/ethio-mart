@@ -33,6 +33,7 @@ function OrderDetailContent({ orderId }: { orderId: string }) {
   if (!order || !belongsToUser) {
     return (
       <EmptyState
+        titleAs="h1"
         icon={PackageX}
         title={t("order.notFound")}
         description={t("order.notFoundText")}

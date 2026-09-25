@@ -34,6 +34,7 @@ function ChangePasswordForm({ userId }: { userId: string }) {
     <form method="post" onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       <FormField
         id="currentPassword"
+        required
         label={t("account.settings.currentPassword")}
         type="password"
         autoComplete="current-password"
@@ -42,6 +43,7 @@ function ChangePasswordForm({ userId }: { userId: string }) {
       />
       <FormField
         id="newPassword"
+        required
         label={t("auth.fields.newPassword")}
         type="password"
         autoComplete="new-password"

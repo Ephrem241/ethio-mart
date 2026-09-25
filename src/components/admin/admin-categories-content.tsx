@@ -110,7 +110,7 @@ function AdminCategoriesContent() {
           action={<Button onClick={openAdd}>{t("admin.categories.add")}</Button>}
         />
       ) : (
-        <Table>
+        <Table label={t("admin.categories.title")}>
           <TableHeader>
             <TableRow>
               <TableHead>{t("admin.categories.columns.order")}</TableHead>
@@ -118,7 +118,9 @@ function AdminCategoriesContent() {
               <TableHead>{t("admin.categories.columns.slug")}</TableHead>
               <TableHead>{t("admin.categories.columns.products")}</TableHead>
               <TableHead>{t("admin.categories.columns.active")}</TableHead>
-              <TableHead></TableHead>
+              <TableHead>
+                <span className="sr-only">{t("common.actions")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -131,7 +133,7 @@ function AdminCategoriesContent() {
                       aria-label={t("admin.categories.moveUp")}
                       disabled={index === 0}
                       onClick={() => handleMove(category.id, "up")}
-                      className="disabled:opacity-30"
+                      className="flex h-6 w-8 items-center justify-center rounded-md outline-none hover:bg-cream focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-30"
                     >
                       <ArrowUp className="size-3.5" />
                     </button>
@@ -140,7 +142,7 @@ function AdminCategoriesContent() {
                       aria-label={t("admin.categories.moveDown")}
                       disabled={index === sorted.length - 1}
                       onClick={() => handleMove(category.id, "down")}
-                      className="disabled:opacity-30"
+                      className="flex h-6 w-8 items-center justify-center rounded-md outline-none hover:bg-cream focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-30"
                     >
                       <ArrowDown className="size-3.5" />
                     </button>

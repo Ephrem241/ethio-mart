@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Banknote } from "lucide-react"
 
 import { BRAND_NAME } from "@/lib/brand"
 import { nameOf } from "@/lib/i18n/content"
@@ -96,9 +97,16 @@ async function Footer() {
 
       <div className="border-t border-white/10">
         <Container className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-white/60">
-            {t("footer.rights", { year: new Date().getFullYear(), brand: BRAND_NAME })}
-          </p>
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-4">
+            <p className="text-xs text-white/60">
+              {t("footer.rights", { year: new Date().getFullYear(), brand: BRAND_NAME })}
+            </p>
+            {/* Only what checkout really takes — see the homepage's payment strip. */}
+            <p className="flex items-center gap-1.5 text-xs text-white/60">
+              <Banknote aria-hidden className="size-3.5 text-gold" />
+              {t("home.payments.weAccept", { methods: t("home.payments.cod") })}
+            </p>
+          </div>
           <div className="flex items-center gap-2 text-xs text-white/60">
             <span>{t("footer.language")}</span>
             <LanguageSwitcher labels="full" tone="dark" />
