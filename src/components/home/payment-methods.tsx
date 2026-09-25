@@ -59,13 +59,9 @@ async function PaymentMethods() {
                 "last:even:col-span-2 last:even:w-[calc(50%-0.375rem)] last:even:justify-self-center sm:last:even:w-auto"
               )}
             >
-              <span
-                className={cn(
-                  "line-clamp-1 text-base font-bold tracking-tight",
-                  method.colorClass,
-                  !method.available && "opacity-70"
-                )}
-              >
+              {/* Not faded for "coming soon": fading brand-coloured text to 70% drops it to
+                  2.8-3.3:1 (WCAG AA needs 4.5:1), and the caption below already says it in words. */}
+              <span className={cn("line-clamp-1 text-base font-bold tracking-tight", method.colorClass)}>
                 {method.name}
               </span>
               <span className="text-[11px] font-medium text-muted-text">

@@ -54,7 +54,9 @@ async function Hero({ settings }: { settings: HomepageSettings }) {
           >
             {settings.heroHeadline}
           </h1>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-charcoal/80 sm:text-lg">{settings.heroSubtext}</p>
+          {/* Full charcoal, not /80: on phones and tablets these lines run over the photo, and where
+              they cross the darker foliage the softer grey measured about 3:1 (AA needs 4.5:1). */}
+          <p className="mt-5 max-w-md text-base leading-relaxed text-charcoal sm:text-lg">{settings.heroSubtext}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="lg" asChild>
               <Link href={settings.heroCtaHref}>
