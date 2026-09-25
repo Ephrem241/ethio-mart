@@ -42,11 +42,64 @@ The service-role key is server-only. It must never be prefixed with
 | `npm run dev` / `build` / `start` | Develop, build, serve the build |
 | `npm run lint` | ESLint (also enforces React purity rules) |
 | `npm run check:i18n` | Fails if any UI text is hard-coded instead of coming from the dictionaries |
+| `npm test` | Unit tests (Vitest) — no network, a few seconds |
+| `npm run test:e2e` | Browser tests (Playwright) against a running build — see [Testing](#testing) |
 | `npm run seed:catalog` | Categories and products (idempotent) |
 | `npm run seed:admin` | The first admin user |
 | `npm run seed:images` | Uploads `scripts/seed-images/` to Storage and points the rows at them (idempotent). `-- --cleanup-test-images` removes leftover `perf-test/` files |
 
 Type-check with `npx tsc --noEmit`.
+
+## Testing
+
+**Unit tests** (`npm test`, Vitest, `src/**/*.test.ts`) cover the logic that has
+no screen: prices and cart maths, the cart/favorites sync merge, phone numbers,
+slugs, redirect safety, translations (every English key has an Amharic one, same
+placeholders, real Ethiopic script), database-error translation, listing URLs,
+SEO metadata and structured data, and the form schemas. They need no network.
+
+**Browser tests** (`npm run test:e2e`, Playwright, `e2e/`) drive the real site
+in Chrome:
+
+| File | What it proves |
+| --- | --- |
+| `flow-1-guest` | Home → search → product → add to cart → cart (desktop and phone) |
+| `flow-2-customer` | Register → browse → cart → checkout → order placed → order page; free delivery over the threshold; today's price is charged |
+| `flow-3-returning` | Log in → account → orders → order details |
+| `flow-4-admin` | Log in → create a product → edit it → open an order → change its status |
+| `flow-5-language` | English → Amharic → English while browsing; `?lang=` links; Amharic page titles and alternate links; a bad language value falls back to English (desktop and phone) |
+| `errors` | The ten error states: no internet, bad login, bad checkout, empty cart, out of stock, invalid product/category, unauthorized admin access, database failure, image failure — each with a useful screen |
+| `quality-audit` | Every route at 1280, 768 and 390 px: status, one `<h1>`, title, SEO tags (or `noindex` on private pages), no console errors, failed requests, broken images or sideways scrolling, and zero accessibility violations (axe, WCAG 2.2 AA); plus an internal-link crawl and the sitemap |
+
+To run them:
+
+```bash
+npm run build
+npm run test:e2e              # or: npx playwright test flow-2 --project=desktop
+```
+
+Playwright starts `npm run start` itself when nothing is listening on port 3000
+(so build first), and reuses a server that is already running.
+`E2E_BASE_URL` points the suite at another server instead, and
+`E2E_BROWSER_CHANNEL` picks the browser (default: the installed Google Chrome).
+Results and traces land in `playwright-report/` and `test-results/`
+(git-ignored).
+
+**These tests use the real Supabase project in `.env`, and need the
+service-role key there** — only to create and remove their own data, never in
+the app. What that means in practice:
+
+- Accounts are `e2e-*@example.com`, products have slugs starting `e2e-`. Nothing
+  else is ever deleted — the setup and teardown refuse any other address.
+- Before a run the catalog is snapshotted; after it, any price, stock or
+  visibility the tests changed is put back and every test account, order, cart,
+  address and favorite is removed. A crashed run is cleaned up by the next one.
+- Don't run them against a production database with real orders in flight.
+
+Not covered: a complete server-side database outage can't be simulated (the
+public Supabase address is fixed into the build), so "database failure" is
+tested from the browser side; and nothing here replaces a pass with a real
+screen reader.
 
 ## What an admin controls
 

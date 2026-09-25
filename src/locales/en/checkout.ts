@@ -98,4 +98,6 @@ export const errors = {
   statusTerminal: "Cannot change the status of an order that is already \"{status}\".",
   sameStatus: "Order is already in this status.",
   notAllowed: "You don't have permission to do that.",
+  // Shown when a request never reached the shop (no connection, or the service is down).
+  network: "We couldn't reach the shop. Check your internet connection and try again.",
 }

@@ -93,4 +93,5 @@ export const errors: Dictionary["errors"] = {
   statusTerminal: "ሁኔታው \"{status}\" የሆነ ትዕዛዝ መቀየር አይቻልም።",
   sameStatus: "ትዕዛዙ አስቀድሞ በዚህ ሁኔታ ላይ ነው።",
   notAllowed: "ይህን ለማድረግ ፈቃድ የለዎትም።",
+  network: "ሱቁን ማግኘት አልተቻለም። የበይነመረብ ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
 }

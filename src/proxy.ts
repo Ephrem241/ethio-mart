@@ -8,13 +8,22 @@ import {
   LOCALE_PARAM,
   isLocale,
 } from "@/lib/i18n/config"
+import { hasMalformedEncoding } from "@/lib/slug"
 
 // Two unrelated jobs share this file because Next allows one proxy:
 //  1. Route protection for signed-in areas (authProxy below).
 //  2. `?lang=` support for the public pages (localeProxy below).
 export async function proxy(request: NextRequest) {
+  // An address Next.js cannot even decode (/product/%FF) would come back as a
+  // bare "Internal Server Error". No page can match it, so say so properly.
+  if (hasMalformedEncoding(request.nextUrl.pathname)) {
+    return NextResponse.rewrite(new URL(NOT_FOUND_PATH, request.url))
+  }
   return isProtectedPath(request.nextUrl.pathname) ? authProxy(request) : localeProxy(request)
 }
+
+// Not a real route on purpose: rewriting to it renders the site's 404 page.
+const NOT_FOUND_PATH = "/page-not-found"
 
 const PROTECTED = /^\/(account|checkout|orders|order|admin)(\/|$)/
 

@@ -74,7 +74,8 @@ function walk(dir: string): string[] {
   for (const entry of readdirSync(dir)) {
     const full = path.join(dir, entry)
     if (statSync(full).isDirectory()) out.push(...walk(full))
-    else if (/\.(ts|tsx)$/.test(entry) && !entry.endsWith(".d.ts")) out.push(full)
+    // Tests and their builders are not user interface: they hold plain English sample data.
+    else if (/\.(ts|tsx)$/.test(entry) && !entry.endsWith(".d.ts") && !/\.test\.tsx?$/.test(entry) && !full.includes(`${path.sep}test${path.sep}`)) out.push(full)
   }
   return out
 }

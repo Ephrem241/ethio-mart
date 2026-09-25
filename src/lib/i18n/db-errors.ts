@@ -27,6 +27,8 @@ const KNOWN: { pattern: RegExp; key: MessageKey; params?: (match: RegExpMatchArr
   },
   { pattern: /^Order is already in this status/i, key: "errors.sameStatus" },
   { pattern: /^Enter a valid email address/i, key: "validation.email" },
+  // The request itself never arrived: offline, or the service is unreachable (each browser words it differently).
+  { pattern: /fetch failed|failed to fetch|network ?error|network request failed|load failed/i, key: "errors.network" },
 ]
 
 export function translateDbError(message: string | undefined | null): string {

@@ -1,6 +1,7 @@
 import { cache } from "react"
 
 import { createClient } from "@/lib/supabase/server"
+import { isValidSlug } from "@/lib/slug"
 import type { Category } from "@/lib/data/categories"
 import {
   toProduct,
@@ -72,10 +73,13 @@ export async function getCategories(): Promise<CategoryWithCount[]> {
 }
 
 export async function getCategoryBySlug(slug: string): Promise<CategoryWithCount | undefined> {
+  if (!isValidSlug(slug)) return undefined
   return (await getCategories()).find((c) => c.slug === slug)
 }
 
 export const getProductBySlug = cache(async (slug: string): Promise<ProductWithCategory | undefined> => {
+  // A slug that can't exist is "not found" — never a query (see lib/slug.ts).
+  if (!isValidSlug(slug)) return undefined
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("products")

@@ -31,7 +31,20 @@ export type PlaceOrderResult =
 //     whole order rather than silently clamping quantities: changing what
 //     someone pays without asking them to re-confirm is worse than making
 //     them decide.)
+// Whatever goes wrong BEFORE the order exists (the products can't be loaded, the
+// connection drops) comes back as an ordinary failure with a message the shopper
+// can read. Without this a failed request would be an unhandled exception, and
+// the "Place order" button would seem to do nothing at all.
 export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
+  try {
+    return await submitOrder(input)
+  } catch (error) {
+    console.error(error)
+    return { success: false, error: translateDbError(error instanceof Error ? error.message : undefined) }
+  }
+}
+
+async function submitOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   const items = useCartStore.getState().items
   if (items.length === 0) {
     return { success: false, error: translate("checkout.errors.cartEmpty") }
@@ -79,13 +92,20 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   }
 
   // The RPC returns the bare order row; fetch its line items for the result.
+  // From here on the order EXISTS, so nothing below may be reported as a failed
+  // order (the shopper would order again). The line items only fill in the
+  // confirmation, which loads the order itself, so a failure to read them is
+  // logged and skipped.
   const orderRow = data as Omit<OrderRecord, "items">
-  const { data: itemRows } = await createClient()
-    .from("order_items")
-    .select("*")
-    .eq("order_id", orderRow.id)
+  let itemRows: unknown[] = []
+  try {
+    const { data: rows } = await createClient().from("order_items").select("*").eq("order_id", orderRow.id)
+    itemRows = rows ?? []
+  } catch (error) {
+    console.error(error)
+  }
 
-  const order = toOrderRecord({ ...orderRow, order_items: itemRows ?? [] })
+  const order = toOrderRecord({ ...orderRow, order_items: itemRows } as Parameters<typeof toOrderRecord>[0])
 
   useCartStore.getState().clearCart()
   return { success: true, order }

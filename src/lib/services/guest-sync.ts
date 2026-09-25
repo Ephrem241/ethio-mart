@@ -2,10 +2,17 @@ import { useCartStore, cartEdits } from "@/lib/store/cart"
 import { useFavoritesStore, favoriteEdits } from "@/lib/store/favorites"
 import { UUID_RE } from "@/lib/uuid"
 import {
+  reconcileCart,
+  reconcileFavorites,
+  toLines,
+  toQuantities,
+  type Edits,
+  type Quantities,
+} from "@/lib/reconcile"
+import {
   fetchRemoteCart,
   upsertRemoteCartLine,
   deleteRemoteCartLine,
-  type RemoteCartLine,
 } from "@/lib/services/cart-remote"
 import {
   fetchRemoteFavorites,
@@ -52,28 +59,6 @@ function whenHydrated(store: {
       }
     })
   })
-}
-
-type Edits = { ids: Set<string>; all: boolean }
-type Quantities = Map<string, number>
-
-const toQuantities = (lines: RemoteCartLine[]): Quantities =>
-  new Map(lines.map((line) => [line.productId, line.quantity]))
-const toLines = (quantities: Quantities): RemoteCartLine[] =>
-  [...quantities].map(([productId, quantity]) => ({ productId, quantity }))
-
-// The server's cart (`base`) with the shopper's own edits laid over it: for
-// every line they touched, what is on this device wins.
-function reconcileCart(base: Quantities, local: Quantities, edits: Edits) {
-  // Emptying the cart touched every line, on both sides.
-  const changed = edits.all ? new Set([...local.keys(), ...base.keys()]) : edits.ids
-  const merged: Quantities = new Map(edits.all ? [] : base)
-  for (const id of changed) {
-    const quantity = local.get(id)
-    if (quantity === undefined) merged.delete(id)
-    else merged.set(id, quantity)
-  }
-  return { merged, changed }
 }
 
 // The server may have missed those edits (nothing is sent before the session
@@ -125,16 +110,6 @@ async function syncCart(userId: string) {
   const result = reconcileCart(merged, local, during)
   now._replace(toLines(result.merged), userId)
   await sendCartEdits(userId, result.changed, local)
-}
-
-// Same idea for favorites: the server's list with this device's toggles on top.
-function reconcileFavorites(base: string[], local: Set<string>, edits: Edits) {
-  const merged = new Set(base)
-  for (const id of edits.ids) {
-    if (local.has(id)) merged.add(id)
-    else merged.delete(id)
-  }
-  return merged
 }
 
 function sendFavoriteEdits(userId: string, edits: Edits, local: Set<string>) {

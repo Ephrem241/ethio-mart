@@ -10,7 +10,10 @@
     "seed:catalog": "node --env-file=.env --import tsx scripts/seed-catalog.ts",
     "seed:admin": "node --env-file=.env --import tsx scripts/seed-admin.ts",
     "seed:images": "node --env-file=.env --import tsx scripts/seed-images.ts",
-    "check:i18n": "node --import tsx scripts/check-i18n.ts"
+    "check:i18n": "node --import tsx scripts/check-i18n.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -32,8 +35,10 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.19.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
@@ -41,6 +46,8 @@
     "shadcn": "^4.21.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.2"
   }
 }
