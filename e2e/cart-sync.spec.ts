@@ -2,7 +2,7 @@ import { en } from "@/locales/en"
 
 import { admin, createTestProduct } from "./support/db"
 import { expect, test } from "./support/fixtures"
-import { addToCartButton, signIn } from "./support/ui"
+import { addToCartButton, signIn, waitForAccountSync } from "./support/ui"
 
 // A signed-in shopper's cart is saved to the server in the background. If the
 // page is reloaded (or the tab closed) before that request finishes, the server
@@ -16,6 +16,7 @@ test.describe("Cart saving", () => {
 
     await signIn(page, shopper)
     await page.goto(`/product/${product.slug}`)
+    await waitForAccountSync(page, "cart")
 
     // The save request never arrives (as when the page is closed mid-request).
     const saves = "**/rest/v1/cart_items*"
@@ -39,5 +40,32 @@ test.describe("Cart saving", () => {
     await page.reload()
     await expect(page.locator("main")).toContainText(product.name_en)
     expect(await cartRows()).toHaveLength(1)
+  })
+
+  test("a guest's cart is not lost when the server cannot save it while they sign in", async ({ page, shopper }) => {
+    const product = await createTestProduct({ price: 300, stock: 8 })
+    const cartRows = async () =>
+      (await admin().from("cart_items").select("quantity").eq("user_id", shopper.id).eq("product_id", product.id)).data ?? []
+
+    // A guest fills the cart ...
+    await page.goto(`/product/${product.slug}`)
+    await addToCartButton(page).click()
+    await expect(page.getByText(en.product.addedToCart)).toBeVisible()
+
+    // ... and signs in. Signing in saves the guest cart to the account, but the save is refused.
+    const saves = "**/rest/v1/cart_items*"
+    await page.route(saves, (route) => (route.request().method() === "GET" ? route.continue() : route.abort()))
+    const refused = page.waitForEvent("requestfailed", (request) => request.url().includes("/rest/v1/cart_items") && request.method() === "POST")
+    await signIn(page, shopper)
+    await refused
+    await page.unroute(saves)
+    expect(await cartRows()).toHaveLength(0)
+
+    // The next page load must still have the item, and send it again.
+    await page.goto("/cart")
+    await expect(page.locator("main")).toContainText(product.name_en)
+    await expect.poll(async () => (await cartRows()).length, { timeout: 20_000 }).toBe(1)
+    await page.reload()
+    await expect(page.locator("main")).toContainText(product.name_en)
   })
 })

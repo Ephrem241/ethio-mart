@@ -36,6 +36,23 @@ export async function signIn(page: Page, user: TestUser, expectUrl: RegExp = /\/
 }
 
 /** The first of several matches that a person can actually see (phone and desktop layouts both exist in the page). */
+/**
+ * Waits until the page has finished loading the signed-in shopper's saved cart
+ * or favorites (`store` is "cart" or "favorites"). Until then a request for
+ * that list is still in flight, and it would save an item by itself after the
+ * test had blocked the item's own save. Signed in and synced means the stored
+ * list records whose it is.
+ */
+export async function waitForAccountSync(page: Page, store: "cart" | "favorites"): Promise<void> {
+  await page.waitForFunction((key) => {
+    try {
+      return !!JSON.parse(localStorage.getItem(key) ?? "null")?.state?.ownerId
+    } catch {
+      return false
+    }
+  }, `ethio-mart-${store}`)
+}
+
 export function visible(locator: Locator): Locator {
   return locator.filter({ visible: true }).first()
 }

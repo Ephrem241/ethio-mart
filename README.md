@@ -44,6 +44,8 @@ The service-role key is server-only. It must never be prefixed with
 | `npm run check:i18n` | Fails if any UI text is hard-coded instead of coming from the dictionaries |
 | `npm test` | Unit tests (Vitest) — no network, a few seconds |
 | `npm run test:e2e` | Browser tests (Playwright) against a running build — see [Testing](#testing) |
+| `npm run check:secrets` | Fails if a Supabase secret key is in the built site or committed to git — see [Going live](#going-live) |
+| `npm run smoke -- <address>` | Read-only health check of a running site (safe on the live shop) |
 | `npm run seed:catalog` | Categories and products (idempotent) |
 | `npm run seed:admin` | The first admin user |
 | `npm run seed:images` | Uploads `scripts/seed-images/` to Storage and points the rows at them (idempotent). `-- --cleanup-test-images` removes leftover `perf-test/` files |
@@ -71,6 +73,7 @@ in Chrome:
 | `errors` | The ten error states: no internet, bad login, bad checkout, empty cart, out of stock, invalid product/category, unauthorized admin access, database failure, image failure — each with a useful screen |
 | `cart-sync` | An item added just before a reload is not lost when the server missed the save (the cart re-sends it) |
 | `admin-homepage` | The hero headline is a multi-line field, so the line break the storefront shows can be seen and kept |
+| `security-headers` | Every response carries the security headers and the Content-Security-Policy; the design-system page is a 404 in production (run against a production build) |
 | `quality-audit` | Every route at 1280, 768 and 390 px: status, one `<h1>`, title, SEO tags (or `noindex` on private pages), no console errors, failed requests, broken images or sideways scrolling, and zero accessibility violations (axe, WCAG 2.2 AA); plus an internal-link crawl and the sitemap |
 
 To run them:
@@ -154,8 +157,100 @@ screen reader.
   fee and payment status are decided inside the database (`place_order`), never
   by the browser. `/admin` is authorized on the server.
 
-## Deploying
+## Going live
 
-Set the same environment variables on your host (Vercel works out of the box)
-and set `NEXT_PUBLIC_SITE_URL` to the public address so canonical links, the
-sitemap and share images are correct.
+The site is built for Vercel + Supabase. Do these in order; each step says where.
+
+### 1. Supabase project
+
+1. **Database.** Apply `supabase/migrations/0001` … `0017` in order (or
+   `supabase/combined-migration.sql`, which is all of them). `0017` is the
+   production hardening from the advisors' report (see [Security](#security)).
+2. **Seed** (from your computer, uses the service-role key): `npm run seed:catalog`,
+   `npm run seed:admin` (prints the admin password once — **log in and change
+   it**), `npm run seed:images`.
+3. **Shop details.** In `store_settings` set `contact_email`, `contact_phone`,
+   `contact_address`, `support_hours`, `return_window_days`, and check
+   `free_delivery_threshold` and the `delivery_fees` rows
+   (see [What an admin controls](#what-an-admin-controls)). Until they are set the
+   Contact and Returns pages say the details are coming — nothing is invented.
+4. **Dashboard settings** (SQL cannot do these):
+   - *Authentication → URL Configuration*: Site URL = the public address; add
+     `https://<your-domain>/auth/callback` to the Redirect URLs.
+   - *Authentication → Providers → Google*: the OAuth client's redirect URI is
+     `https://<project>.supabase.co/auth/v1/callback`.
+   - *Authentication → SMTP*: set up a real mail provider. Supabase's built-in
+     mailer allows only a few e-mails an hour, so password resets and
+     confirmation mails stop working under real traffic.
+   - *Authentication → Passwords*: turn on "Prevent use of leaked passwords"
+     (a Pro-plan feature) and pick a minimum length.
+   - *Database → Backups*: daily backups (or point-in-time recovery) before
+     real orders arrive. The free plan has neither.
+
+### 2. Hosting (Vercel)
+
+Import the repository (Next.js preset, Node 20.9 or newer — see `engines`).
+Add these environment variables to **Production and Preview**:
+
+| Variable | | Value |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | required | Supabase → Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | required | the **anon / publishable** key — never the service-role/secret key |
+| `NEXT_PUBLIC_SITE_URL` | recommended | the public address, e.g. `https://www.your-shop.com`, no trailing slash (canonical links, sitemap, share previews). If unset, Vercel's production domain is used |
+| `SUPABASE_SERVICE_ROLE_KEY` | **do not set** | The site never uses it; only the seed scripts and the test suite do. The server prints a warning at start-up if it is present |
+
+The server checks its configuration when it starts. In production it refuses to
+start — with the reason in the deployment log — if the Supabase address or key
+is missing, or if a secret key has been put where a public one belongs
+(`src/lib/env-check.ts`). Pick the Vercel function region nearest your Supabase
+project's region: every page makes several database requests.
+Preview deployments are never indexed (robots.txt disallows everything).
+
+### 3. Before every release
+
+```bash
+npm run lint && npx tsc --noEmit && npm run check:i18n && npm test
+npm run build
+npm run check:secrets     # no service-role key in the build output or in git
+npm run test:e2e          # against a TEST Supabase project — it creates accounts and orders
+```
+
+### 4. After deploying
+
+```bash
+npm run smoke -- https://www.your-shop.com
+```
+
+`smoke` is read-only, so it is safe on the live shop. It checks the public pages,
+404s and sign-in redirects, the security headers, that robots.txt, the sitemap
+and the canonical links use the real address (not localhost), and — with only
+the public key — that a visitor cannot read orders, customers, addresses,
+carts or hidden products. Then submit `/sitemap.xml` in Google Search Console.
+
+### Security
+
+- **Database.** Row-level security is on for every table; customers can only
+  read and change their own carts, addresses, favorites and orders. Orders are
+  created only by the `place_order` function, which prices them on the server.
+  Storage is public-read but admin-write, limited to JPEG/PNG/WebP up to 5 MB.
+  `/admin` is checked on the server and again by the database.
+- **Browser.** Every response carries `X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security` and a
+  Content-Security-Policy: code and requests only to this site and this Supabase
+  project, no framing, no plug-ins, and pictures from any https address (an
+  administrator can paste an outside photo link into a product) (`next.config.ts`). Scripts and styles
+  still allow `'unsafe-inline'`, because Next.js hydrates pages with inline
+  scripts; a per-request nonce would remove that, but forces every page to be
+  rendered on each request. The site has no user-written HTML, which is why it
+  is not worth that today.
+- **Secrets.** `npm run check:secrets` recognises Supabase keys by what they are
+  (a JWT's `role` claim, the `sb_secret_` prefix, the literal value of your
+  service-role key) and fails if one is in the built site or committed to git.
+- **Accepted on purpose.** Supabase's advisors still list `is_admin()` and
+  `subscribe_to_newsletter()` as callable by visitors. `is_admin()` runs inside
+  the row-level-security rules with the visitor's own privileges and only
+  answers about the caller; the newsletter sign-up is meant to be public. It has
+  no rate limit, so if it is abused, add one in Vercel's firewall.
+- **Not included.** No error-monitoring service (server errors go to Vercel's
+  logs; `instrumentation.ts` is where to attach Sentry or similar), and the CSP
+  is not nonce-based (above).

@@ -1,14 +1,14 @@
 import { mkdirSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { admin, deleteAllTestUsers, deleteTestCatalog, TEST_SLUG_PREFIX } from "./db"
-
-export const SNAPSHOT_FILE = path.join(tmpdir(), "ethio-mart-e2e", "catalog-snapshot.json")
+import { restoreCatalogFromSnapshot, SNAPSHOT_FILE } from "./snapshot"
 
 // Runs once before the suite:
 //  1. checks the environment is complete (a clear message beats a cryptic failure),
-//  2. removes anything a previous, interrupted run left behind,
+//  2. removes anything a previous, interrupted run left behind (test accounts,
+//     throwaway products, and the real products' stock/prices, put back from the
+//     snapshot that run took),
 //  3. remembers the catalog as it is now, so the teardown can put back whatever
 //     the tests change (an order lowers a product's stock).
 export default async function globalSetup() {
@@ -19,7 +19,8 @@ export default async function globalSetup() {
 
   const staleUsers = await deleteAllTestUsers()
   await deleteTestCatalog()
-  if (staleUsers) console.log(`[e2e] removed ${staleUsers} test account(s) left by an earlier run`)
+  const restored = await restoreCatalogFromSnapshot()
+  if (staleUsers || restored) console.log(`[e2e] cleaned up after an earlier run: ${staleUsers} test account(s) removed, ${restored} product(s) restored`)
 
   const { data, error } = await admin()
     .from("products")

@@ -114,7 +114,9 @@ async function syncCart(userId: string) {
   // The guest lines reach the server BEFORE this device starts treating its
   // copy as a mirror, so closing the page right now can't lose them (the next
   // load merges again).
-  await Promise.all(guestLines.map((line) => upsertRemoteCartLine(userId, line.productId, merged.get(line.productId)!)))
+  const uploaded = await Promise.all(
+    guestLines.map(async (line) => ({ id: line.productId, ok: await upsertRemoteCartLine(userId, line.productId, merged.get(line.productId)!) }))
+  )
 
   // Whatever the shopper changed while that was in flight wins over the merge.
   const now = useCartStore.getState()
@@ -122,6 +124,14 @@ async function syncCart(userId: string) {
   const local = toQuantities(now.items)
   const result = reconcileCart(merged, local, during.edits)
   now._replace(toLines(result.merged), userId)
+
+  // From here on this device is a mirror of the server. A guest line the server
+  // did NOT confirm (offline, an error) is remembered as an unconfirmed edit,
+  // so the next load sends it again; otherwise that load would take the
+  // server's silence for "removed" and drop the line. (Recorded only now, after
+  // the merged cart is in place: the value to send is the merged quantity.)
+  for (const { id, ok } of uploaded) if (!ok) cartEdits.record(id)
+
   await sendCartEdits(userId, result.changed, local, during)
 }
 
@@ -165,12 +175,16 @@ async function syncFavorites(userId: string) {
   const merged = [...remote, ...toAdd]
 
   // As with the cart: the guest favorites reach the server first.
-  await addRemoteFavorites(userId, toAdd)
+  const uploaded = await addRemoteFavorites(userId, toAdd)
 
   const now = useFavoritesStore.getState()
   const during = favoriteEdits.pending()
   const local = new Set(now.ids)
   now._replace([...reconcileFavorites(merged, local, during.edits)], userId)
+
+  // ...and any the server did not confirm are remembered for the next load.
+  if (!uploaded) for (const id of toAdd) favoriteEdits.record(id)
+
   await sendFavoriteEdits(userId, during, local)
 }
 
