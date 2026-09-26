@@ -5,6 +5,8 @@ import path from "node:path"
 import AxeBuilder from "@axe-core/playwright"
 import type { Browser, BrowserContext, Page } from "@playwright/test"
 
+import { en } from "@/locales/en"
+
 import { admin, createTestProduct, createTestUser, deleteTestUser, placeOrderAs, stockedProducts, type TestUser } from "./support/db"
 import { expect, test } from "./support/fixtures"
 import { signIn, watchProblems } from "./support/ui"
@@ -48,7 +50,6 @@ const ROUTES: Route[] = [
   guest("/categories"),
   guest((d) => `/category/${d.categorySlug}`),
   guest((d) => `/product/${d.productSlug}`),
-  guest("/deals"),
   guest("/search?q=leather", false),
   guest("/about"),
   guest("/contact"),
@@ -146,6 +147,10 @@ test.describe("Quality audit: every route at every size", () => {
           if (response?.status() !== expected) found.push(`status ${response?.status()}, expected ${expected}`)
           await settle(page)
 
+          // the page asked for is the page shown (a signed-in page that bounced to /login would otherwise pass every check below)
+          const landed = new URL(page.url()).pathname
+          if (landed !== new URL(url, baseURL).pathname) found.push(`ended up at ${landed} instead of the requested page`)
+
           // structure
           const facts = await page.evaluate(() => ({
             title: document.title.trim(),
@@ -217,6 +222,13 @@ test.describe("Quality audit: every route at every size", () => {
       if (!response.ok()) broken.push(`${response.status()} ${href}`)
     }
     expect(broken).toEqual([])
+  })
+
+  test("the Deals link goes to the sale listing, and the page is headed Deals", async ({ page }) => {
+    await page.goto("/deals")
+    await expect(page).toHaveURL(/\/shop\?sale=1$/)
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(en.nav.deals)
+    await expect(page).toHaveTitle(new RegExp(en.nav.deals))
   })
 
   test("the sitemap lists only pages that exist, and robots.txt points to it", async ({ request }) => {

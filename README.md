@@ -1,4 +1,4 @@
-# Ethio Mart
+# Evael Store
 
 A modern online marketplace for Ethiopia: browse and search a catalog, add to
 cart, check out with cash on delivery, follow an order, and manage everything
@@ -69,6 +69,8 @@ in Chrome:
 | `flow-4-admin` | Log in → create a product → edit it → open an order → change its status |
 | `flow-5-language` | English → Amharic → English while browsing; `?lang=` links; Amharic page titles and alternate links; a bad language value falls back to English (desktop and phone) |
 | `errors` | The ten error states: no internet, bad login, bad checkout, empty cart, out of stock, invalid product/category, unauthorized admin access, database failure, image failure — each with a useful screen |
+| `cart-sync` | An item added just before a reload is not lost when the server missed the save (the cart re-sends it) |
+| `admin-homepage` | The hero headline is a multi-line field, so the line break the storefront shows can be seen and kept |
 | `quality-audit` | Every route at 1280, 768 and 390 px: status, one `<h1>`, title, SEO tags (or `noindex` on private pages), no console errors, failed requests, broken images or sideways scrolling, and zero accessibility violations (axe, WCAG 2.2 AA); plus an internal-link crawl and the sitemap |
 
 To run them:

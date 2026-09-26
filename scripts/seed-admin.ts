@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto"
 import { createClient } from "@supabase/supabase-js"
 
 const ADMIN_EMAIL = "admin@ethiomart.com"
-const ADMIN_FULL_NAME = "Ethio Mart Admin"
+const ADMIN_FULL_NAME = "Evael Store Admin"
 
 // Never hardcode the admin password in source. Set SEED_ADMIN_PASSWORD in
 // .env to choose one; otherwise a random one is generated and printed once.

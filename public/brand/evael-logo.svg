@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 52" role="img" aria-label="Evael Store">
+<g transform="translate(4 4)"><path d="M13 15v-4a7 7 0 0 1 14 0v4" fill="none" stroke="#123C35" stroke-width="3" stroke-linecap="round"/><path d="M8.2 14h23.6a2 2 0 0 1 2 1.8l2.1 24a2.4 2.4 0 0 1-2.4 2.6H6.5a2.4 2.4 0 0 1-2.4-2.6l2.1-24a2 2 0 0 1 2-1.8z" fill="#C9A15B"/><path d="M8.2 14h23.6a2 2 0 0 1 2 1.8l.15 1.7H6.05l.15-1.7a2 2 0 0 1 2-1.8z" fill="#A9843F"/><path d="M25.5 21.5H14.5v14h11M14.5 28.5h8" fill="none" stroke="#123C35" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="56" y="30" font-family="'Playfair Display', Georgia, serif" font-size="27" font-weight="700" letter-spacing="2.2" fill="#123C35">EVAEL</text>
+<g fill="#8A6A2F"><rect x="56.5" y="38.5" width="19" height="1"/><rect x="146" y="38.5" width="18.5" height="1"/>
+<text x="112.8" y="42.5" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="11" font-weight="600" letter-spacing="4.6" fill="#8A6A2F">STORE</text></g>
+</svg>

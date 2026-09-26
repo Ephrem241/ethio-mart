@@ -39,23 +39,29 @@ export async function fetchRemoteCart(userId: string): Promise<RemoteCartLine[] 
   return (data ?? []).map((row) => ({ productId: row.product_id as string, quantity: row.quantity as number }))
 }
 
-export async function upsertRemoteCartLine(userId: string, productId: string, quantity: number) {
+// The writes below say whether the server confirmed them (`true`), so the
+// caller can stop remembering the edit (see store/edit-tracker.ts). A failed
+// write is reported to the shopper and the edit is kept for the next load.
+export async function upsertRemoteCartLine(userId: string, productId: string, quantity: number): Promise<boolean> {
   const { error } = await createClient()
     .from("cart_items")
     .upsert({ user_id: userId, product_id: productId, quantity }, { onConflict: "user_id,product_id" })
   if (error) reportSyncFailure("save", error.message)
+  return !error
 }
 
-export async function deleteRemoteCartLine(userId: string, productId: string) {
+export async function deleteRemoteCartLine(userId: string, productId: string): Promise<boolean> {
   const { error } = await createClient()
     .from("cart_items")
     .delete()
     .eq("user_id", userId)
     .eq("product_id", productId)
   if (error) reportSyncFailure("remove", error.message)
+  return !error
 }
 
-export async function clearRemoteCart(userId: string) {
+export async function clearRemoteCart(userId: string): Promise<boolean> {
   const { error } = await createClient().from("cart_items").delete().eq("user_id", userId)
   if (error) reportSyncFailure("clear", error.message)
+  return !error
 }

@@ -6,9 +6,9 @@ import {
   reconcileFavorites,
   toLines,
   toQuantities,
-  type Edits,
   type Quantities,
 } from "@/lib/reconcile"
+import type { PendingEdits } from "@/lib/store/edit-tracker"
 import {
   fetchRemoteCart,
   upsertRemoteCartLine,
@@ -26,8 +26,9 @@ import {
 //  - ownerId === this user: the local copy is just a mirror of the server
 //    (write-through) -> the SERVER wins; reload it (also picks up changes
 //    made on another device) — except for whatever the shopper changed on
-//    this device meanwhile (see store/edit-tracker.ts), which is kept and sent
-//    to the server again.
+//    this device that the server has not confirmed (see store/edit-tracker.ts,
+//    which outlives the page: a reload before a save finished must not lose
+//    the item), which is kept and sent to the server again.
 //  - ownerId === null: a GUEST cart/list -> merge it into the server copy
 //    (spec: guests can shop; nothing they added is lost by signing in).
 //  - ownerId === some other user: leftover from a different account -> never
@@ -62,14 +63,22 @@ function whenHydrated(store: {
 }
 
 // The server may have missed those edits (nothing is sent before the session
-// is known) or seen them out of order, so send them again. Quantities are
-// absolute, so repeating one is harmless.
-function sendCartEdits(userId: string, changed: Set<string>, local: Quantities) {
-  return Promise.all(
-    [...changed].map((id) =>
-      local.has(id) ? upsertRemoteCartLine(userId, id, local.get(id)!) : deleteRemoteCartLine(userId, id)
-    )
+// is known, a page closed mid-save) or seen them out of order, so send them
+// again. Quantities are absolute, so repeating one is harmless. Each edit is
+// forgotten only once the server confirms it.
+async function sendCartEdits(userId: string, changed: Set<string>, local: Quantities, unsaved: PendingEdits) {
+  const confirmed = await Promise.all(
+    [...changed].map(async (id) => {
+      const ok = local.has(id)
+        ? await upsertRemoteCartLine(userId, id, local.get(id)!)
+        : await deleteRemoteCartLine(userId, id)
+      if (ok) unsaved.settle(id)
+      return ok
+    })
   )
+  if (unsaved.edits.all && confirmed.every(Boolean)) unsaved.settleAll()
+  // An edit that needs no write (added, then removed again before the server ever saw it) is finished too.
+  for (const id of unsaved.edits.ids) if (!changed.has(id)) unsaved.settle(id)
 }
 
 async function syncCart(userId: string) {
@@ -79,16 +88,20 @@ async function syncCart(userId: string) {
 
   // From here to the `_replace` there is no `await`.
   const cart = useCartStore.getState()
-  const edits = cartEdits.drain()
+  const unsaved = cartEdits.pending()
   const server = toQuantities(remote)
 
   if (cart.ownerId === userId) {
     const local = toQuantities(cart.items)
-    const { merged, changed } = reconcileCart(server, local, edits)
+    const { merged, changed } = reconcileCart(server, local, unsaved.edits)
     cart._replace(toLines(merged), userId)
-    await sendCartEdits(userId, changed, local)
+    await sendCartEdits(userId, changed, local, unsaved)
     return
   }
+
+  // A guest's edits are covered by the merge below, and another account's edits
+  // do not belong to this one at all.
+  cartEdits.clear()
 
   const guestLines =
     cart.ownerId === null ? cart.items.filter((line) => UUID_RE.test(line.productId)) : []
@@ -105,17 +118,25 @@ async function syncCart(userId: string) {
 
   // Whatever the shopper changed while that was in flight wins over the merge.
   const now = useCartStore.getState()
-  const during = cartEdits.drain()
+  const during = cartEdits.pending()
   const local = toQuantities(now.items)
-  const result = reconcileCart(merged, local, during)
+  const result = reconcileCart(merged, local, during.edits)
   now._replace(toLines(result.merged), userId)
-  await sendCartEdits(userId, result.changed, local)
+  await sendCartEdits(userId, result.changed, local, during)
 }
 
-function sendFavoriteEdits(userId: string, edits: Edits, local: Set<string>) {
-  const added = [...edits.ids].filter((id) => local.has(id))
-  const removed = [...edits.ids].filter((id) => !local.has(id))
-  return Promise.all([addRemoteFavorites(userId, added), ...removed.map((id) => removeRemoteFavorite(userId, id))])
+// As with the cart: each edit is forgotten only once the server confirms it.
+async function sendFavoriteEdits(userId: string, unsaved: PendingEdits, local: Set<string>) {
+  const added = [...unsaved.edits.ids].filter((id) => local.has(id))
+  const removed = [...unsaved.edits.ids].filter((id) => !local.has(id))
+  await Promise.all([
+    addRemoteFavorites(userId, added).then((ok) => {
+      if (ok) for (const id of added) unsaved.settle(id)
+    }),
+    ...removed.map(async (id) => {
+      if (await removeRemoteFavorite(userId, id)) unsaved.settle(id)
+    }),
+  ])
 }
 
 async function syncFavorites(userId: string) {
@@ -125,14 +146,18 @@ async function syncFavorites(userId: string) {
 
   // From here to the `_replace` there is no `await`.
   const favorites = useFavoritesStore.getState()
-  const edits = favoriteEdits.drain()
+  const unsaved = favoriteEdits.pending()
 
   if (favorites.ownerId === userId) {
     const local = new Set(favorites.ids)
-    favorites._replace([...reconcileFavorites(remote, local, edits)], userId)
-    await sendFavoriteEdits(userId, edits, local)
+    favorites._replace([...reconcileFavorites(remote, local, unsaved.edits)], userId)
+    await sendFavoriteEdits(userId, unsaved, local)
     return
   }
+
+  // A guest's edits are covered by the merge below, and another account's edits
+  // do not belong to this one at all.
+  favoriteEdits.clear()
 
   const guestIds =
     favorites.ownerId === null ? favorites.ids.filter((id) => UUID_RE.test(id)) : []
@@ -143,9 +168,9 @@ async function syncFavorites(userId: string) {
   await addRemoteFavorites(userId, toAdd)
 
   const now = useFavoritesStore.getState()
-  const during = favoriteEdits.drain()
+  const during = favoriteEdits.pending()
   const local = new Set(now.ids)
-  now._replace([...reconcileFavorites(merged, local, during)], userId)
+  now._replace([...reconcileFavorites(merged, local, during.edits)], userId)
   await sendFavoriteEdits(userId, during, local)
 }
 
@@ -156,8 +181,8 @@ export async function syncGuestDataOnLogin(userId: string) {
 // A signed-out browser must never keep the previous person's cart or
 // favorites (shared computer), and must go back to being a guest.
 export function clearLocalUserData() {
-  cartEdits.drain()
-  favoriteEdits.drain()
+  cartEdits.clear()
+  favoriteEdits.clear()
   useCartStore.getState()._replace([], null)
   useFavoritesStore.getState()._replace([], null)
 }

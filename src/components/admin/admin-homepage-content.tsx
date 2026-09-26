@@ -72,8 +72,9 @@ function AdminHomepageContent() {
       <section className="space-y-4 rounded-card border border-border bg-card p-5">
         <h2 className="font-medium text-charcoal">{t("admin.homepage.hero")}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField id="heroHeadline" label={en(t("admin.homepage.headline"))} registration={register("heroHeadline")} />
-          <FormField id="heroHeadlineAm" label={am(t("admin.homepage.headline"))} registration={register("heroHeadlineAm")} />
+          {/* Two lines on purpose: a line break in the headline is shown on the storefront, and a one-line input would hide and drop it. */}
+          <FormField id="heroHeadline" label={en(t("admin.homepage.headline"))} multiline registration={register("heroHeadline")} />
+          <FormField id="heroHeadlineAm" label={am(t("admin.homepage.headline"))} multiline registration={register("heroHeadlineAm")} />
           <FormField id="heroSubtext" label={en(t("admin.homepage.subtext"))} registration={register("heroSubtext")} />
           <FormField id="heroSubtextAm" label={am(t("admin.homepage.subtext"))} registration={register("heroSubtextAm")} />
           <FormField id="heroCtaLabel" label={en(t("admin.homepage.primaryLabel"))} registration={register("heroCtaLabel")} />

@@ -18,6 +18,7 @@
     --color-cream: var(--color-cream);
     --color-sand: var(--color-sand);
     --color-gold: var(--color-gold);
+    --color-gold-deep: var(--color-gold-deep);
     --color-charcoal: var(--color-charcoal);
     --color-muted-text: var(--color-muted-text);
     --color-success: var(--color-success);
@@ -70,7 +71,7 @@
 }
 
 :root {
-    /* Ethio Mart brand palette. Forest is the brand colour; ivory is the
+    /* Evael Store brand palette. Forest is the brand colour; ivory is the
        dominant surface; cream and sand are secondary surfaces; gold is a
        small accent — it is used on dark forest surfaces and for star ratings,
        never as text on ivory (too little contrast). */
@@ -80,6 +81,7 @@
     --color-cream: #F3ECE2;
     --color-sand: #E3D2BD;
     --color-gold: #C9A15B;
+    --color-gold-deep: #8A6A2F; /* gold for small text on light surfaces (the logo's "STORE"): 4.7:1 on ivory */
     --color-charcoal: #171717;
     --color-muted-text: #6B665F; /* 4.85:1 on the darkest surface it sits on (WCAG AA) */
     --color-success: #267A55;

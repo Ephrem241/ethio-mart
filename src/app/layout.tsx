@@ -65,7 +65,7 @@ const playfair = localFont({
 });
 
 // Site-wide defaults. Pages add their own title/description/canonical (see
-// lib/seo/metadata.ts); "%s | Ethio Mart" turns a page title into the full one.
+// lib/seo/metadata.ts); "%s | Evael Store" turns a page title into the full one.
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   const title = t("meta.title", { brand: SITE_NAME });

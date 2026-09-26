@@ -42,12 +42,17 @@ export default async function ShopPage({
     getT(),
   ])
 
+  // The "Deals" link lands here (/deals redirects to ?sale=1), so the heading
+  // says so — the same words the browser tab and search result use above.
+  const deals = parsed.onSaleOnly
+  const title = deals ? t("nav.deals") : t("catalog.shopTitle")
+
   return (
     <div className="space-y-8 py-6 lg:py-8">
       <PageHeader
-        breadcrumb={[{ label: t("nav.home"), href: "/" }, { label: t("catalog.shopTitle") }]}
-        title={t("catalog.shopTitle")}
-        description={t("catalog.shopSubtitle")}
+        breadcrumb={[{ label: t("nav.home"), href: "/" }, { label: title }]}
+        title={title}
+        description={deals ? t("home.flashSubtitle") : t("catalog.shopSubtitle")}
       />
       <ProductListing
         products={result.products}

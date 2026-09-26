@@ -28,8 +28,11 @@ export async function fetchRemoteFavorites(userId: string): Promise<string[] | n
   return (data ?? []).map((row) => row.product_id as string)
 }
 
-export async function addRemoteFavorites(userId: string, productIds: string[]) {
-  if (productIds.length === 0) return
+// The writes below say whether the server confirmed them (`true`), so the
+// caller can stop remembering the edit (see store/edit-tracker.ts). A failed
+// write is reported to the shopper and the edit is kept for the next load.
+export async function addRemoteFavorites(userId: string, productIds: string[]): Promise<boolean> {
+  if (productIds.length === 0) return true
   const { error } = await createClient()
     .from("favorites")
     .upsert(
@@ -37,13 +40,15 @@ export async function addRemoteFavorites(userId: string, productIds: string[]) {
       { onConflict: "user_id,product_id", ignoreDuplicates: true }
     )
   if (error) reportSyncFailure("save", error.message)
+  return !error
 }
 
-export async function removeRemoteFavorite(userId: string, productId: string) {
+export async function removeRemoteFavorite(userId: string, productId: string): Promise<boolean> {
   const { error } = await createClient()
     .from("favorites")
     .delete()
     .eq("user_id", userId)
     .eq("product_id", productId)
   if (error) reportSyncFailure("remove", error.message)
+  return !error
 }

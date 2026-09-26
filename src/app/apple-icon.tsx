@@ -1,7 +1,10 @@
 import { ImageResponse } from "next/og"
 
+import { BRAND_COLORS } from "@/lib/brand-mark"
+import { BrandMarkImage } from "@/lib/brand-mark-image"
+
 // The home-screen icon on iOS (also used as the organization logo in
-// structured data): the "E" mark, larger. iOS rounds the corners itself, so
+// structured data): the bag mark, larger. iOS rounds the corners itself, so
 // the tile is square.
 export const size = { width: 180, height: 180 }
 export const contentType = "image/png"
@@ -14,17 +17,12 @@ export default function AppleIcon() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-start",
+          alignItems: "center",
           justifyContent: "center",
-          gap: 17,
-          paddingLeft: 48,
-          background: "#123C35",
+          background: BRAND_COLORS.forest,
         }}
       >
-        <div style={{ width: 84, height: 17, borderRadius: 9, background: "#C9A15B" }} />
-        <div style={{ width: 54, height: 17, borderRadius: 9, background: "#C9A15B" }} />
-        <div style={{ width: 84, height: 17, borderRadius: 9, background: "#C9A15B" }} />
+        <BrandMarkImage height={118} />
       </div>
     ),
     { ...size }
