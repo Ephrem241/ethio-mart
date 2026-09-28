@@ -170,6 +170,17 @@ export function endOfDayInAddis(now: number = Date.now()): string {
   return new Date(nextAddisMidnight - ADDIS_OFFSET_MS).toISOString()
 }
 
+// What the Special Deals countdown runs to — the props of DealsCountdown: the
+// admin's end date while it is still in the future; otherwise midnight in
+// Addis Ababa, the end of "today's" deals, rolling on to the next midnight
+// when it gets there. Shared by the desktop banner and the phone carousel's
+// deals slide, so the two can never disagree.
+export function dealsCountdown(s: HomepageSettings): { endsAt: string; initialRemainingMs: number; rolling: boolean } {
+  const hasEndDate = remainingUntil(s.promoEndsAt) > 0
+  const endsAt = hasEndDate ? s.promoEndsAt : endOfDayInAddis()
+  return { endsAt, initialRemainingMs: remainingUntil(endsAt), rolling: !hasEndDate }
+}
+
 // Replaces `{maxDiscount}` in the promo headline and subtext with the real
 // figure (a whole percent) — see DEFAULT_HOMEPAGE_SETTINGS.
 export function fillDealTokens(s: HomepageSettings, maxDiscountPercent: number): HomepageSettings {

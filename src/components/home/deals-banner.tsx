@@ -3,7 +3,7 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
 import { getT } from "@/lib/i18n/server"
-import { endOfDayInAddis, remainingUntil, type HomepageSettings } from "@/lib/services/homepage"
+import { dealsCountdown, type HomepageSettings } from "@/lib/services/homepage"
 import { Button } from "@/components/ui/button"
 import { Reveal } from "@/components/motion/reveal"
 import { DealsCountdown } from "@/components/home/deals-countdown"
@@ -15,14 +15,12 @@ import { DealsCountdown } from "@/components/home/deals-countdown"
 //
 // The countdown runs to the admin's end date while it is still in the future;
 // otherwise to midnight in Addis Ababa, the end of "today's" deals, rolling on
-// to the next midnight when it gets there.
+// to the next midnight when it gets there (see dealsCountdown).
 async function DealsBanner({ settings }: { settings: HomepageSettings }) {
   const t = await getT()
 
   // Server time is only used for the first paint; the browser then keeps its own.
-  const hasEndDate = remainingUntil(settings.promoEndsAt) > 0
-  const endsAt = hasEndDate ? settings.promoEndsAt : endOfDayInAddis()
-  const remaining = remainingUntil(endsAt)
+  const countdown = dealsCountdown(settings)
 
   return (
     <Reveal>
@@ -71,7 +69,7 @@ async function DealsBanner({ settings }: { settings: HomepageSettings }) {
         </div>
 
         <div className="relative z-10 px-6 pt-5 pb-7 sm:px-10 lg:absolute lg:top-8 lg:right-8 lg:p-0">
-          <DealsCountdown endsAt={endsAt} initialRemainingMs={remaining} rolling={!hasEndDate} />
+          <DealsCountdown {...countdown} />
         </div>
       </section>
     </Reveal>

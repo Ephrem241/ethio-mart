@@ -42,7 +42,10 @@ async function Footer() {
   const [t, categories] = await Promise.all([getT(), getNavCategories()])
 
   return (
-    <footer className="mt-8 bg-forest-dark pb-16 text-white/80 lg:pb-0">
+    // Bottom padding on phones: room for the fixed bottom bar (BottomNav, or
+    // the product page's buy bar) — 4rem plus the iPhone home-indicator inset
+    // it grows by, so the language switcher in the last row stays clear of it.
+    <footer className="mt-8 bg-forest-dark pb-[calc(4rem+env(safe-area-inset-bottom))] text-white/80 lg:pb-0">
       <Container className="grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1.6fr] lg:gap-8">
         <div className="space-y-4 sm:col-span-2 lg:col-span-1">
           <Logo variant="light" />

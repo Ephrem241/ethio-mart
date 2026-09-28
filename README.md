@@ -175,13 +175,27 @@ The site is built for Vercel + Supabase. Do these in order; each step says where
    (see [What an admin controls](#what-an-admin-controls)). Until they are set the
    Contact and Returns pages say the details are coming — nothing is invented.
 4. **Dashboard settings** (SQL cannot do these):
-   - *Authentication → URL Configuration*: Site URL = the public address; add
-     `https://<your-domain>/auth/callback` to the Redirect URLs.
+   - *Authentication → URL Configuration*: **Site URL** = the public address
+     (`https://www.your-shop.com`). **Redirect URLs** (the allow-list): add
+     `https://www.your-shop.com/**` and, for local work, `http://localhost:3000/**`.
+     The app sends people through `/auth/callback` (Google sign-in and password
+     reset); an address that is not on the list is refused. Preview deployments
+     need their own entry (`https://*-<your-team>.vercel.app/**`) if you test
+     sign-in there.
    - *Authentication → Providers → Google*: the OAuth client's redirect URI is
      `https://<project>.supabase.co/auth/v1/callback`.
-   - *Authentication → SMTP*: set up a real mail provider. Supabase's built-in
-     mailer allows only a few e-mails an hour, so password resets and
-     confirmation mails stop working under real traffic.
+   - *Authentication → Emails → SMTP Settings*: switch on **Enable custom SMTP**
+     with a real mail provider (Resend, Brevo, Postmark, Mailgun, Amazon SES …;
+     they all give you a host, port, user name and password once you have
+     verified your sender domain). Supabase's built-in mailer allows only a few
+     e-mails an hour, so password resets stop working under real traffic.
+     Then, under *Emails → Templates → Reset Password*, set the link to
+     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
+     so that a reset link also works when it is opened on a different device
+     from the one that asked for it. Test with a real address (check spam).
+     Sign-up currently signs the customer in at once (*Authentication → Sign In /
+     Providers → Email → Confirm email* is off); if you turn it on, customers
+     must click the mailed link and then sign in.
    - *Authentication → Passwords*: turn on "Prevent use of leaked passwords"
      (a Pro-plan feature) and pick a minimum length.
    - *Database → Backups*: daily backups (or point-in-time recovery) before

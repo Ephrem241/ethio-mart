@@ -143,9 +143,13 @@ function SearchBar({
         placeholder={placeholder ?? t("search.placeholder")}
         aria-label={t("search.label")}
         autoComplete="off"
+        // 15px text from `lg` up; below it the Input's own 16px applies, so iOS
+        // doesn't zoom in when the phone search bar is tapped. The heights are
+        // set for every width (`max-lg:` too), or the Input's phone height
+        // would replace them there.
         className={cn(
-          "rounded-full border-input bg-card pl-5 pr-14 text-[15px] shadow-soft placeholder:text-muted-text md:text-[15px]",
-          size === "lg" ? "h-12" : "h-11"
+          "rounded-full border-input bg-card pl-5 pr-14 text-[15px] shadow-soft placeholder:text-muted-text",
+          size === "lg" ? "h-12 max-lg:h-12" : "h-11 max-lg:h-11"
         )}
       />
       <Button

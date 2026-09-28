@@ -9,35 +9,34 @@ import { LanguageSwitcher } from "@/components/layout/language-switcher"
 import { SearchBar } from "@/components/navigation/search-bar"
 import { Button } from "@/components/ui/button"
 
-// Phones: a slim sticky row (logo, language, wishlist, cart) with the search
-// bar directly beneath it. Search is never tucked into a menu — but it also
-// scrolls away with the page instead of pinning ~60px more of a small screen
-// to the top, so only the slim row is sticky.
+// Phones: the logo/language/wishlist/cart row AND the full-width search bar
+// below it stay pinned together while scrolling, so search is always one tap
+// away without opening a menu. (Previously only the slim row was sticky and
+// the search bar scrolled away, to save vertical space — an app-like feel
+// asks for search to always be reachable instead.)
 async function MobileHeader() {
   const t = await getT()
 
   return (
-    <div className="lg:hidden">
-      <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md">
-        <Container className="flex h-14 items-center justify-between gap-2">
-          <Logo />
-          <div className="flex items-center gap-0.5">
-            <LanguageSwitcher compact className="mr-1" />
-            {/* Below 360px there isn't room for a third icon; the wishlist is
-                still one tap away via Profile in the bottom navigation. */}
-            <Button variant="ghost" size="icon-lg" asChild className="max-[359px]:hidden">
-              <Link href="/account/favorites" aria-label={t("nav.wishlist")}>
-                <Heart aria-hidden className="size-[22px]" strokeWidth={1.75} />
-              </Link>
-            </Button>
-            <CartButton />
-          </div>
-        </Container>
-      </header>
-      <Container className="pt-3 pb-1">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-md lg:hidden">
+      <Container className="flex h-14 items-center justify-between gap-2">
+        <Logo />
+        <div className="flex items-center gap-0.5">
+          <LanguageSwitcher compact className="mr-1" />
+          {/* Below 360px there isn't room for a third icon; the wishlist is
+              still one tap away via the bottom navigation. */}
+          <Button variant="ghost" size="icon-lg" asChild className="max-[359px]:hidden">
+            <Link href="/account/favorites" aria-label={t("nav.wishlist")}>
+              <Heart aria-hidden className="size-[22px]" strokeWidth={1.75} />
+            </Link>
+          </Button>
+          <CartButton />
+        </div>
+      </Container>
+      <Container className="pt-3 pb-3">
         <SearchBar size="lg" className="w-full" />
       </Container>
-    </div>
+    </header>
   )
 }
 

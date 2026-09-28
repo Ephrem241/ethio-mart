@@ -15,6 +15,7 @@ export const home: Dictionary["home"] = {
     previous: "ቀዳሚ ምርቶች",
     next: "ቀጣይ ምርቶች",
     rail: "{title}፣ ተንሸራታች ዝርዝር",
+    highlights: "የመነሻ ገጽ ዋና ዋና ነጥቦች፣ ተንሸራታች",
   },
   deals: {
     imageAlt: "የመዳብ ድስቶች፣ የተሸመኑ የተንጠለጠሉ መብራቶችና የእንጨት ጠረጴዛ ያሉት ሞቅ ያለ ወጥ ቤት",

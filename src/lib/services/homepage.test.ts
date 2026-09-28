@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   DEFAULT_HOMEPAGE_SETTINGS,
+  dealsCountdown,
   endOfDayInAddis,
   fillDealTokens,
   localizeHomepage,
@@ -59,6 +60,31 @@ describe("remainingUntil", () => {
     expect(remainingUntil("2026-09-24T11:00:00.000Z")).toBe(0)
     expect(remainingUntil("")).toBe(0)
     expect(remainingUntil("not a date")).toBe(0)
+  })
+})
+
+describe("dealsCountdown", () => {
+  it("runs to the admin's end date while it is still ahead, without rolling", () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-09-24T12:00:00.000Z"))
+    const settings = { ...DEFAULT_HOMEPAGE_SETTINGS, promoEndsAt: "2026-09-30T09:00:00.000Z" }
+    expect(dealsCountdown(settings)).toEqual({
+      endsAt: "2026-09-30T09:00:00.000Z",
+      initialRemainingMs: Date.parse("2026-09-30T09:00:00.000Z") - Date.parse("2026-09-24T12:00:00.000Z"),
+      rolling: false,
+    })
+  })
+
+  it("runs to midnight in Addis Ababa, rolling, when the end date is missing or past", () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date("2026-09-24T12:00:00.000Z"))
+    for (const promoEndsAt of ["", "2026-09-20T09:00:00.000Z", "not a date"]) {
+      expect(dealsCountdown({ ...DEFAULT_HOMEPAGE_SETTINGS, promoEndsAt })).toEqual({
+        endsAt: "2026-09-24T21:00:00.000Z",
+        initialRemainingMs: 9 * 60 * 60 * 1000,
+        rolling: true,
+      })
+    }
   })
 })
 

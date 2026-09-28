@@ -28,6 +28,7 @@ function QuantitySelector({
         type="button"
         variant="ghost"
         size="icon-sm"
+        className="size-11 lg:size-8"
         disabled={value <= min}
         onClick={() => onChange(clamp(value - 1))}
         aria-label={t("product.quantity.decrease")}
@@ -41,6 +42,7 @@ function QuantitySelector({
         type="button"
         variant="ghost"
         size="icon-sm"
+        className="size-11 lg:size-8"
         disabled={value >= max}
         onClick={() => onChange(clamp(value + 1))}
         aria-label={t("product.quantity.increase")}

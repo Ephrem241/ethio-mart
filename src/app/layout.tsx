@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,17 @@ const playfair = localFont({
   display: "swap",
   adjustFontFallback: "Times New Roman",
 });
+
+// `viewport-fit: cover` lets fixed elements read the iPhone safe-area insets
+// (env(safe-area-inset-bottom)) — the bottom nav and the product page's sticky
+// buy bar both depend on it. Without this export Next falls back to a default
+// viewport meta tag that omits `viewport-fit`, and those insets silently
+// resolve to 0 instead of the real notch/home-indicator height.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
 
 // Site-wide defaults. Pages add their own title/description/canonical (see
 // lib/seo/metadata.ts); "%s | Evael Store" turns a page title into the full one.

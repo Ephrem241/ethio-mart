@@ -19,14 +19,20 @@ const DAY = 24 * HOUR
 // so the server HTML and the browser's first paint agree (no hydration
 // mismatch); right after mounting, the browser switches to its own clock and
 // ticks once a second.
+//
+// "boxes" is the desktop banner's card of four tiles; "pill" is one short line
+// ("Deal ends in 05:12:33") for the phone carousel's slide, where the card
+// would cover most of the photograph.
 function DealsCountdown({
   endsAt,
   initialRemainingMs,
   rolling = false,
+  variant = "boxes",
 }: {
   endsAt: string
   initialRemainingMs: number
   rolling?: boolean
+  variant?: "boxes" | "pill"
 }) {
   const t = useT()
   const [remaining, setRemaining] = useState(initialRemainingMs)
@@ -45,7 +51,13 @@ function DealsCountdown({
 
   if (remaining <= 0) {
     return (
-      <p className="rounded-2xl bg-white/95 px-5 py-4 text-sm font-medium text-charcoal shadow-lift">
+      <p
+        className={
+          variant === "pill"
+            ? "w-fit rounded-full bg-white/95 px-3.5 py-1.5 text-sm font-medium text-charcoal shadow-lift"
+            : "rounded-2xl bg-white/95 px-5 py-4 text-sm font-medium text-charcoal shadow-lift"
+        }
+      >
         {t("home.deals.ended")}
       </p>
     )
@@ -57,6 +69,23 @@ function DealsCountdown({
     { value: Math.floor((remaining % HOUR) / MINUTE), label: t("home.deals.minutes") },
     { value: Math.floor((remaining % MINUTE) / SECOND), label: t("home.deals.seconds") },
   ]
+
+  if (variant === "pill") {
+    const [days, ...clock] = parts
+    return (
+      <div
+        role="timer"
+        aria-label={t("home.deals.timeLeft")}
+        className="flex w-fit items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-sm shadow-lift"
+      >
+        <span className="font-medium text-muted-text">{t("home.deals.endsIn")}</span>
+        <span className="font-semibold text-charcoal tabular-nums">
+          {days.value > 0 && `${days.value} ${days.label} `}
+          {clock.map((part) => String(part.value).padStart(2, "0")).join(":")}
+        </span>
+      </div>
+    )
+  }
 
   return (
     // role="timer" is not announced on every tick (its live region is off by

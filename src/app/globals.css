@@ -168,6 +168,15 @@
   html {
     @apply font-sans;
     }
+  /* Phones and tablets: the header (logo row + search bar, ~129px) stays
+     pinned while scrolling, so whatever is scrolled into view — a skip-link
+     jump, an anchor, the next field reached with Tab — stops below it rather
+     than under it. Desktop is left as it was. */
+  @media (width < 64rem) {
+    html {
+      scroll-padding-top: 8.5rem;
+    }
+  }
 }
 
 /* The language switcher's "አማ" / "አማርኛ" label is Ethiopic text on every page,

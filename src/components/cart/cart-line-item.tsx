@@ -46,6 +46,7 @@ function CartLineItem({ line, product }: { line: CartLine; product: ProductWithC
             type="button"
             variant="ghost"
             size="icon-sm"
+            className="size-11 lg:size-8"
             onClick={() => removeItem(product.id)}
             aria-label={t("cart.removeItem", { name })}
           >

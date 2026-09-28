@@ -9,16 +9,18 @@ test.describe("Flow 5: switching language", () => {
   test("English → Amharic → English, and the choice sticks while browsing", async ({ page, context, catalog, problems }) => {
     const product = catalog[0]
 
+    // "Home" is a navigation link at every size: in the desktop header and in
+    // the phone's bottom bar (which has no Shop tab).
     await test.step("starts in English", async () => {
       await page.goto("/")
       await expect(page.locator("html")).toHaveAttribute("lang", "en")
-      await expect(visible(page.getByRole("link", { name: en.nav.shop, exact: true }))).toBeVisible()
+      await expect(visible(page.getByRole("link", { name: en.nav.home, exact: true }))).toBeVisible()
     })
 
     await test.step("switches to Amharic: the page, the html language and a cookie change", async () => {
       await switchLanguage(page, "am")
       await expect(page.locator("html")).toHaveAttribute("lang", "am")
-      await expect(visible(page.getByRole("link", { name: am.nav.shop, exact: true }))).toBeVisible()
+      await expect(visible(page.getByRole("link", { name: am.nav.home, exact: true }))).toBeVisible()
       const cookies = await context.cookies()
       expect(cookies.find((c) => c.name === "locale")?.value).toBe("am")
     })

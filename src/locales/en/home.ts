@@ -12,6 +12,8 @@ export const home = {
     next: "Next products",
     // The scrollable row of products; {title} is the section's heading.
     rail: "{title}, scrollable list",
+    // The phone-only carousel combining the hero, deals and lifestyle banners.
+    highlights: "Homepage highlights, scrollable",
   },
   // The Special Deals headline, subtext and button come from the admin-edited
   // homepage copy (homepage_sections.promo); these are the fixed parts around it.

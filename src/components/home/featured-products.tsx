@@ -22,7 +22,7 @@ async function FeaturedProducts({ products }: { products: ProductWithCategory[] 
           href="/shop"
           linkLabel={t("home.viewAll")}
         />
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5 xl:grid-cols-6 [&>*:nth-child(6)]:lg:max-xl:hidden">
+        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 sm:gap-2 lg:grid-cols-5 lg:gap-4 xl:grid-cols-6 [&>*:nth-child(6)]:lg:max-xl:hidden">
           {products.slice(0, VISIBLE).map((product) => (
             <ProductCard key={product.id} product={product} t={t} sizes={CARD_SIZES} />
           ))}

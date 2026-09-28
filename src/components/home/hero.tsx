@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import { cn } from "cn"
 
 import { BRAND_NAME } from "@/lib/brand"
 import { getT } from "@/lib/i18n/server"
@@ -20,13 +21,33 @@ import { Container } from "@/components/layout/container"
 //
 // It is the first thing painted, so it uses plain CSS animation (visible even
 // before JavaScript runs) and the photograph is preloaded.
-async function Hero({ settings }: { settings: HomepageSettings }) {
+async function Hero({
+  settings,
+  showHeading = true,
+  variant = "section",
+}: {
+  settings: HomepageSettings
+  // False when a separate, always-present <h1> elsewhere on the page already
+  // carries this text (see app/page.tsx) — this Hero is then one of two
+  // responsive copies (mobile carousel / desktop), and a second literal <h1>
+  // would exist in the DOM even while `display:none`, which is invalid
+  // regardless of which copy happens to be visible at a given width.
+  showHeading?: boolean
+  // "slide": the first slide of the phone carousel, which is already full
+  // width and sits flush under the header — so no breakout or negative top
+  // margin here, and the section fills the slide's height to match the others.
+  variant?: "section" | "slide"
+}) {
   const t = await getT()
+  const HeadlineTag = showHeading ? "h1" : "p"
 
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative left-1/2 isolate -mt-6 flex min-h-[460px] w-screen -translate-x-1/2 items-center overflow-hidden bg-cream sm:min-h-[400px] lg:-mt-10 lg:min-h-[470px]"
+      className={cn(
+        "relative isolate flex min-h-[460px] items-center overflow-hidden bg-cream sm:min-h-[400px]",
+        variant === "slide" ? "h-full w-full" : "left-1/2 -mt-6 w-screen -translate-x-1/2 lg:-mt-10 lg:min-h-[470px]"
+      )}
     >
       <Image
         src="/images/home/hero-living-wide.jpg"
@@ -48,12 +69,12 @@ async function Hero({ settings }: { settings: HomepageSettings }) {
             <span aria-hidden className="h-px w-8 bg-gold" />
             {BRAND_NAME}
           </p>
-          <h1
-            id="hero-heading"
+          <HeadlineTag
+            {...(showHeading ? { id: "hero-heading" } : { "aria-hidden": true })}
             className="mt-5 font-display text-[1.9rem] leading-[1.12] font-semibold whitespace-pre-line text-charcoal min-[400px]:text-[2.1rem] sm:text-5xl lg:text-[3.4rem]"
           >
             {settings.heroHeadline}
-          </h1>
+          </HeadlineTag>
           {/* Full charcoal, not /80: on phones and tablets these lines run over the photo, and where
               they cross the darker foliage the softer grey measured about 3:1 (AA needs 4.5:1). */}
           <p className="mt-5 max-w-md text-base leading-relaxed text-charcoal sm:text-lg">{settings.heroSubtext}</p>
