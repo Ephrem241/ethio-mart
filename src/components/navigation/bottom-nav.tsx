@@ -32,7 +32,7 @@ function BottomNav() {
   return (
     <nav
       aria-label={t("nav.primaryMobile")}
-      className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 flex items-stretch border-t border-border bg-background/95 pr-[env(safe-area-inset-right)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] backdrop-blur-md lg:hidden"
     >
       {items.map((item) => {
         // Plain prefix matching would also mark "Account" active on
@@ -53,7 +53,7 @@ function BottomNav() {
             // read out here instead, as the header's cart button does.
             aria-label={showBadge ? t.plural("nav.cartCount", cartCount) : undefined}
             className={cn(
-              "relative flex h-16 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-medium transition-colors outline-none focus-visible:bg-cream",
+              "relative flex h-16 min-w-0 flex-1 flex-col items-center justify-center gap-1 px-0.5 text-[11px] font-medium transition-colors outline-none focus-visible:bg-cream active:bg-cream/70",
               active ? "text-forest" : "text-muted-text"
             )}
           >

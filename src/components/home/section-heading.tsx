@@ -27,7 +27,7 @@ function SectionHeading({
         {href && linkLabel && (
           <Link
             href={href}
-            className="group inline-flex items-center gap-1.5 rounded-lg py-1 text-sm font-medium text-charcoal/80 transition-colors outline-none hover:text-forest focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="group inline-flex items-center gap-1.5 rounded-lg py-1 text-sm font-medium text-charcoal/80 transition-colors outline-none hover:text-forest focus-visible:ring-3 focus-visible:ring-ring/50 max-lg:min-h-11 max-lg:active:text-forest"
           >
             {linkLabel}
             <ArrowRight aria-hidden className="size-4 transition-transform group-hover:translate-x-0.5" />

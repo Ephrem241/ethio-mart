@@ -123,7 +123,10 @@ function FilterDrawer({
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="max-h-[85dvh] gap-0 rounded-t-2xl">
+      <SheetContent
+        side="bottom"
+        className="max-h-[85dvh] gap-0 rounded-t-2xl pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]"
+      >
         {/* The grab handle every bottom sheet has (the sheet closes with its X, Escape or a tap outside). */}
         <span aria-hidden className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-border" />
         {open && (

@@ -38,7 +38,7 @@ export default async function AboutPage() {
               <li key={category.id}>
                 <Link
                   href={`/category/${category.slug}`}
-                  className="inline-block rounded-full border border-sand bg-white px-4 py-2 text-sm font-medium text-charcoal outline-none transition-colors hover:border-forest hover:text-forest focus-visible:ring-2 focus-visible:ring-forest/40"
+                  className="inline-block rounded-full border border-sand bg-white px-4 py-2 text-sm font-medium text-charcoal outline-none transition-colors hover:border-forest hover:text-forest focus-visible:ring-2 focus-visible:ring-forest/40 max-lg:py-3"
                 >
                   {nameOf(category, t.locale)}
                 </Link>

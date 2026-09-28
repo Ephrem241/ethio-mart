@@ -20,7 +20,7 @@ function CategoryChip({ category, t }: { category: CategoryWithCount; t: Transla
   return (
     <Link
       href={`/category/${category.slug}`}
-      className="flex w-[calc((100vw-1rem)/4.5-0.75rem)] shrink-0 flex-col items-center gap-2 rounded-xl text-center outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:w-[76px]"
+      className="flex w-[calc((100vw-1rem)/4.5-0.75rem)] shrink-0 flex-col items-center gap-2 rounded-xl text-center transition-transform outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-95 sm:w-[76px]"
     >
       <span className="flex size-14 items-center justify-center rounded-full bg-cream text-forest sm:size-16">
         {/* getCategoryIcon is a pure lookup into a fixed module-level map (category-icons.ts) —

@@ -27,7 +27,7 @@ function Logo({
       href="/"
       aria-label={BRAND_NAME}
       className={cn(
-        "group inline-flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:gap-2.5",
+        "group inline-flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50 max-lg:min-h-11 sm:gap-2.5",
         className
       )}
     >

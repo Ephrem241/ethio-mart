@@ -53,7 +53,7 @@ function ProductCard({
       )}
     >
       <div className="relative p-2 pb-0 max-lg:p-0">
-        <Link href={href} className="block overflow-hidden rounded-image max-lg:rounded-none">
+        <Link href={href} className="block overflow-hidden rounded-image transition-opacity max-lg:rounded-none max-lg:active:opacity-80">
           <ImagePlaceholder
             seed={product.id}
             icon={Icon}

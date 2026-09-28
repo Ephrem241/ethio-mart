@@ -71,7 +71,8 @@ function InfoSection({
 
 function InfoLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className={`${linkClass} inline-flex items-center gap-1.5`}>
+    // Phones: a 44px-tall tap target.
+    <Link href={href} className={`${linkClass} inline-flex items-center gap-1.5 max-lg:min-h-11`}>
       {children}
       <ArrowRight aria-hidden className="size-4" />
     </Link>

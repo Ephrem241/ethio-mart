@@ -155,7 +155,9 @@ function SearchBar({
       <Button
         type="submit"
         size="icon"
-        className="absolute right-1.5 size-9 rounded-full bg-forest text-white hover:bg-forest-dark"
+        // 44px below `lg` (the Button's icon size there), 2px in from the field's
+        // edge on every side of the 48px phone search field.
+        className="absolute right-1.5 size-9 rounded-full bg-forest text-white hover:bg-forest-dark max-lg:right-0.5"
         aria-label={t("search.submit")}
       >
         <Search className="size-4" />

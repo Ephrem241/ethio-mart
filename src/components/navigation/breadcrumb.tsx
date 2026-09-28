@@ -12,7 +12,8 @@ async function Breadcrumb({ items }: { items: { label: string; href?: string }[]
         <span key={i} className="flex items-center gap-1.5">
           {i > 0 && <ChevronRight aria-hidden className="size-3.5" />}
           {item.href ? (
-            <Link href={item.href} className="hover:text-forest">
+            // Phones: a 44px-tall tap area; the negative margins keep the row's height as it was.
+            <Link href={item.href} className="hover:text-forest max-lg:-mx-1 max-lg:-my-3 max-lg:inline-block max-lg:px-1 max-lg:py-3">
               {item.label}
             </Link>
           ) : (

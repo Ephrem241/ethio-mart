@@ -71,7 +71,7 @@ function ProductGallery({
               key={`${productId}-${i}`}
               type="button"
               onClick={() => setZoomOpen(true)}
-              className="w-full shrink-0 snap-center cursor-zoom-in outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset"
+              className="w-full shrink-0 snap-center cursor-zoom-in transition-opacity outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset max-lg:active:opacity-90"
               aria-label={t("product.gallery.enlarge", { index: i + 1, total: views.length, name: productName })}
             >
               <ImagePlaceholder

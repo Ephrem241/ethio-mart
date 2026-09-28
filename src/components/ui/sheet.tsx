@@ -74,7 +74,8 @@ function SheetContent({
           <SheetPrimitive.Close data-slot="sheet-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-3 right-3"
+              // 44px below `lg`, where sheets are opened with a finger.
+              className="absolute top-3 right-3 max-lg:top-2 max-lg:right-2 max-lg:size-11"
               size="icon-sm"
             >
               <XIcon

@@ -110,7 +110,8 @@ export default async function ProductPage({
           <div className="space-y-3">
             <Link
               href={`/category/${product.categorySlug}`}
-              className="text-xs font-semibold tracking-[0.16em] text-forest uppercase underline-offset-4 hover:underline"
+              // Phones: padding makes a 47px tap area; the negative margins keep the layout as it was.
+              className="text-xs font-semibold tracking-[0.16em] text-forest uppercase underline-offset-4 hover:underline max-lg:-my-4 max-lg:inline-block max-lg:py-4"
             >
               {categoryName}
             </Link>

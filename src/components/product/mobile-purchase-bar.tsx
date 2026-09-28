@@ -21,7 +21,7 @@ function MobilePurchaseBar({
   const t = useT()
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgb(23_23_23/0.18)] backdrop-blur-md lg:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 pt-3 pr-[max(0.75rem,env(safe-area-inset-right))] pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] shadow-[0_-8px_24px_-12px_rgb(23_23_23/0.18)] backdrop-blur-md lg:hidden">
       <div className="mx-auto grid max-w-xl grid-cols-2 gap-2.5">
         <Button size="lg" className="min-w-0 px-3" disabled={outOfStock} onClick={onAddToCart}>
           {outOfStock ? t("product.stock.out") : t("product.addToCart")}

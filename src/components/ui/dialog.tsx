@@ -92,7 +92,8 @@ function DialogContent({
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-2 right-2"
+              // 44px below `lg`, where dialogs are closed with a finger.
+              className="absolute top-2 right-2 max-lg:size-11"
               size="icon-sm"
             >
               <XIcon

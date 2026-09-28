@@ -31,8 +31,11 @@ const columns: { title: MessageKey; links: { href: string; label: MessageKey }[]
   },
 ]
 
+// Phones and tablets: each link is a full 44px row, and the lists run in two
+// columns (listClass) so the footer doesn't grow taller for it.
 const linkClass =
-  "rounded text-sm text-white/70 underline-offset-4 transition-colors outline-none hover:text-white hover:underline focus-visible:text-white focus-visible:underline"
+  "rounded text-sm text-white/70 underline-offset-4 transition-colors outline-none hover:text-white hover:underline focus-visible:text-white focus-visible:underline max-lg:flex max-lg:min-h-11 max-lg:items-center"
+const listClass = "space-y-2.5 max-lg:grid max-lg:grid-cols-2 max-lg:gap-x-4 max-lg:space-y-0"
 const headingClass = "text-xs font-semibold tracking-[0.16em] text-gold uppercase"
 
 // The closing band: dark forest, white type, gold accents. The Shop column
@@ -56,7 +59,7 @@ async function Footer() {
           <h2 id="footer-shop" className={headingClass}>
             {t("footer.shop")}
           </h2>
-          <ul className="space-y-2.5">
+          <ul className={listClass}>
             {categories.slice(0, 7).map((category) => (
               <li key={category.id}>
                 <Link href={`/category/${category.slug}`} className={linkClass}>
@@ -77,7 +80,7 @@ async function Footer() {
             <h2 id={column.title} className={headingClass}>
               {t(column.title)}
             </h2>
-            <ul className="space-y-2.5">
+            <ul className={listClass}>
               {column.links.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className={linkClass}>

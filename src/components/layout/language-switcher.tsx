@@ -62,7 +62,7 @@ function LanguageSwitcher({
         // Named in its own language: the button says which language it switches TO.
         aria-label={LOCALE_NAMES[other].native}
         className={cn(
-          "inline-flex h-9 min-w-10 items-center justify-center rounded-full border border-border bg-card px-3 text-xs font-medium text-charcoal transition-colors hover:bg-cream focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+          "inline-flex h-9 min-w-10 items-center justify-center rounded-full border border-border bg-card px-3 text-xs font-medium text-charcoal transition-colors hover:bg-cream focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-lg:h-11 max-lg:min-w-11",
           other === "am" && "font-ethiopic-system",
           pending && "opacity-70",
           className
@@ -97,7 +97,7 @@ function LanguageSwitcher({
             disabled={pending}
             onClick={() => choose(locale)}
             className={cn(
-              "min-h-8 rounded-full px-3 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              "min-h-8 rounded-full px-3 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-lg:min-h-11",
               // Ethiopic label: system font, so it doesn't pull in the web font (see globals.css).
               locale === "am" && "font-ethiopic-system",
               dark

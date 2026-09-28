@@ -73,16 +73,17 @@ function CartContents() {
           subtotal={subtotal}
           totalSavings={totalSavings}
           canCheckout={resolvedLines.length > 0}
-          ctaClassName="max-lg:hidden"
+          ctaDesktopOnly
         />
       </div>
 
       {/* Phones and tablets: the total and the checkout button stay at the
-          bottom of the screen, just above the bottom navigation, while the
+          bottom of the screen, just above the bottom navigation (4rem, its
+          1px top border and the home-indicator inset), while the
           cart scrolls. Sticky rather than fixed, so it comes to rest after the
           summary at the end of the cart instead of covering the footer. (The
-          summary's own button is hidden there, see ctaClassName.) */}
-      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 flex items-center gap-4 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:hidden">
+          summary's own button is hidden there, see ctaDesktopOnly.) */}
+      <div className="sticky bottom-[calc(4rem+1px+env(safe-area-inset-bottom))] z-20 -mx-4 flex items-center gap-4 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:hidden">
         <div className="shrink-0">
           <p className="text-xs text-muted-text">{t("cart.summary.total")}</p>
           <p className="text-lg leading-tight font-semibold text-forest tabular-nums">{formatPrice(subtotal, t)}</p>

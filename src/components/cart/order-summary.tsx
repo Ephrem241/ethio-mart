@@ -16,7 +16,7 @@ function OrderSummary({
   canCheckout,
   deliveryFee,
   hideCta,
-  ctaClassName,
+  ctaDesktopOnly,
   bare,
 }: {
   subtotal: number
@@ -31,8 +31,10 @@ function OrderSummary({
   deliveryFee?: number
   /** Checkout supplies its own "Place order" submit button instead. */
   hideCta?: boolean
-  /** Extra classes for the checkout button (the cart hides it on phones, where a pinned bar has one). */
-  ctaClassName?: string
+  /** Show the checkout button from `lg` up only: the cart's phone layout has
+   * a pinned bar with one. (The total above it then drops the gap it kept
+   * for the button, so the card doesn't end in empty space.) */
+  ctaDesktopOnly?: boolean
 }) {
   const t = useT()
   const total = subtotal + (deliveryFee ?? 0)
@@ -100,7 +102,7 @@ function OrderSummary({
         </p>
       )}
 
-      <div className="border-t border-border pt-4">
+      <div className={cn("border-t border-border pt-4", ctaDesktopOnly && "max-lg:mb-0")}>
         <div className="flex items-baseline justify-between">
           <span className="font-medium text-charcoal">{t("cart.summary.total")}</span>
           <span className="text-xl font-semibold text-forest">{formatPrice(total, t)}</span>
@@ -111,14 +113,14 @@ function OrderSummary({
       </div>
 
       {hideCta ? null : canCheckout ? (
-        <Button asChild size="lg" className={cn("w-full", ctaClassName)}>
+        <Button asChild size="lg" className={cn("w-full", ctaDesktopOnly && "max-lg:hidden")}>
           <Link href="/checkout">{t("cart.summary.continue")}</Link>
         </Button>
       ) : (
         // A disabled <a> isn't actually inert (the `disabled` attribute/CSS
         // pseudo-class don't apply to anchors), so a real, non-navigating
         // <button disabled> is used here instead of a Link-wrapped one.
-        <Button size="lg" className={cn("w-full", ctaClassName)} disabled>
+        <Button size="lg" className={cn("w-full", ctaDesktopOnly && "max-lg:hidden")} disabled>
           {t("cart.summary.continue")}
         </Button>
       )}
