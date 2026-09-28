@@ -168,13 +168,18 @@
   html {
     @apply font-sans;
     }
-  /* Phones and tablets: the header (logo row + search bar, ~129px) stays
-     pinned while scrolling, so whatever is scrolled into view — a skip-link
+  /* Phones and tablets: the header (MobileHeader: a 3.5rem logo row, the 3rem
+     search bar with 0.75rem above and below it, and a 1px border) stays pinned
+     while scrolling. Things that stick below it (the listing's Sort/Filter
+     bar) sit at this height; whatever is scrolled into view — a skip-link
      jump, an anchor, the next field reached with Tab — stops below it rather
      than under it. Desktop is left as it was. */
+  :root {
+    --mobile-header-height: calc(8rem + 1px);
+  }
   @media (width < 64rem) {
     html {
-      scroll-padding-top: 8.5rem;
+      scroll-padding-top: calc(var(--mobile-header-height) + 0.5rem);
     }
   }
 }

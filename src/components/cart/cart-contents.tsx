@@ -4,6 +4,7 @@ import { CartSkeleton } from "@/components/feedback/skeletons"
 import Link from "next/link"
 import { Package, ShoppingBag } from "lucide-react"
 
+import { formatPrice } from "@/lib/currency"
 import { useT } from "@/lib/i18n/provider"
 import { useCartStore } from "@/lib/store/cart"
 import { useProductsByIds } from "@/lib/hooks/use-products-by-ids"
@@ -72,7 +73,29 @@ function CartContents() {
           subtotal={subtotal}
           totalSavings={totalSavings}
           canCheckout={resolvedLines.length > 0}
+          ctaClassName="max-lg:hidden"
         />
+      </div>
+
+      {/* Phones and tablets: the total and the checkout button stay at the
+          bottom of the screen, just above the bottom navigation, while the
+          cart scrolls. Sticky rather than fixed, so it comes to rest after the
+          summary at the end of the cart instead of covering the footer. (The
+          summary's own button is hidden there, see ctaClassName.) */}
+      <div className="sticky bottom-[calc(4rem+env(safe-area-inset-bottom))] z-20 -mx-4 flex items-center gap-4 border-t border-border bg-background/95 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:hidden">
+        <div className="shrink-0">
+          <p className="text-xs text-muted-text">{t("cart.summary.total")}</p>
+          <p className="text-lg leading-tight font-semibold text-forest tabular-nums">{formatPrice(subtotal, t)}</p>
+        </div>
+        {resolvedLines.length > 0 ? (
+          <Button asChild size="lg" className="min-w-0 flex-1">
+            <Link href="/checkout">{t("cart.summary.continue")}</Link>
+          </Button>
+        ) : (
+          <Button size="lg" className="min-w-0 flex-1" disabled>
+            {t("cart.summary.continue")}
+          </Button>
+        )}
       </div>
     </div>
   )

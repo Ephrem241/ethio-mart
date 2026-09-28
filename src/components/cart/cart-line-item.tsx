@@ -25,9 +25,11 @@ function CartLineItem({ line, product }: { line: CartLine; product: ProductWithC
   const lineSubtotal = product.price * line.quantity
   const name = nameOf(product, t.locale)
 
+  // Phones: a compact row — an 80px photo, the name in at most two lines, and
+  // tighter spacing; from `sm` up the photo is 112px as before.
   return (
-    <div className="flex gap-4 rounded-card border border-border/70 bg-card p-3 shadow-soft sm:p-4">
-      <Link href={`/product/${product.slug}`} className="w-24 shrink-0 self-start sm:w-28">
+    <div className="flex gap-4 rounded-card border border-border/70 bg-card p-3 shadow-soft max-lg:gap-3 sm:p-4">
+      <Link href={`/product/${product.slug}`} className="w-20 shrink-0 self-start sm:w-28">
         <ImagePlaceholder seed={product.id} icon={Icon} label={name} imageUrl={product.image_url} sizes="96px" />
       </Link>
 
@@ -36,7 +38,7 @@ function CartLineItem({ line, product }: { line: CartLine; product: ProductWithC
           <div>
             <Link
               href={`/product/${product.slug}`}
-              className="font-medium text-charcoal hover:text-forest"
+              className="font-medium text-charcoal hover:text-forest max-lg:line-clamp-2 max-lg:text-[15px]"
             >
               {name}
             </Link>

@@ -14,8 +14,9 @@ function FavoriteProductCard({ product }: { product: ProductWithCategory }) {
   return (
     <div className="space-y-2">
       <ProductCard product={product} t={t} />
+      {/* Desktop only: below `lg` the card has its own round Add to Cart button. */}
       <Button
-        className="w-full"
+        className="w-full max-lg:hidden"
         size="sm"
         disabled={outOfStock}
         onClick={() => addToCart(product.id)}

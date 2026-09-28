@@ -63,6 +63,7 @@ function AddressForm({
           id="address-subCity"
           required
           label={t("checkout.delivery.subCity")}
+          autoComplete="address-level3"
           registration={register("subCity")}
           error={errors.subCity?.message}
         />
@@ -71,6 +72,7 @@ function AddressForm({
         id="address-woreda"
         required
         label={t("checkout.delivery.woreda")}
+        autoComplete="address-level4"
         registration={register("woreda")}
         error={errors.woreda?.message}
       />
@@ -78,6 +80,7 @@ function AddressForm({
         id="address-address"
         required
         label={t("checkout.delivery.address")}
+        autoComplete="address-line1"
         registration={register("address")}
         error={errors.address?.message}
       />

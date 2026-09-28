@@ -10,6 +10,7 @@ import { useCartStore } from "@/lib/store/cart"
 import { Button } from "@/components/ui/button"
 import { QuantitySelector } from "@/components/product/quantity-selector"
 import { FavoriteButton } from "@/components/product/favorite-button"
+import { MobilePurchaseBar } from "@/components/product/mobile-purchase-bar"
 
 function ProductPurchaseActions({ product }: { product: ProductWithCategory }) {
   const t = useT()
@@ -29,7 +30,11 @@ function ProductPurchaseActions({ product }: { product: ProductWithCategory }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 max-lg:space-y-0">
+      {/* Phones and tablets: the two buy buttons live in a bar pinned to the
+          bottom of the screen instead (fixed, so it takes no room here; it
+          comes first so that it is never the "last child" `space-y` spaces). */}
+      <MobilePurchaseBar outOfStock={outOfStock} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
       {/* Quantity and the heart share a row; the two buy buttons get a row of
           their own, in equal columns that may shrink (min-w-0) — three things
           side by side did not fit a 320px screen. */}
@@ -39,7 +44,7 @@ function ProductPurchaseActions({ product }: { product: ProductWithCategory }) {
         )}
         <FavoriteButton productId={product.id} className="ml-auto size-12 shrink-0 border border-border shadow-none" />
       </div>
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="hidden grid-cols-2 gap-2.5 lg:grid">
         <Button size="lg" className="min-w-0 px-3" disabled={outOfStock} onClick={handleAddToCart}>
           {outOfStock ? t("product.stock.out") : t("product.addToCart")}
         </Button>

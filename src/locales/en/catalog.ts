@@ -32,6 +32,8 @@ export const catalog = {
     priceUnder: "Under {amount}",
     priceRange: "{min} – {max}",
     priceOver: "{amount} & above",
+    // Read after "Filter" on the phone's filter button, whose badge shows the number.
+    activeCount: { one: "{count} filter applied", other: "{count} filters applied" },
   },
   sort: {
     label: "Sort products",
@@ -50,6 +52,10 @@ export const catalog = {
     label: "Pagination",
     previous: "Previous page",
     next: "Next page",
+    // Phones and tablets: the next page is added below the products instead.
+    loadMore: "Load more",
+    loading: "Loading…",
+    loadFailed: "More products couldn't be loaded. Check your connection and try again.",
   },
 }
 
@@ -78,6 +84,12 @@ export const product = {
     enlarge: "Enlarge image {index} of {total} for {name}",
     view: "{name} — view {index}",
     thumb: "View {index}",
+    // The small "2/5" over the photos on phones (which photo is showing, of how many).
+    counter: "{index}/{total}",
+  },
+  // The product's description, a section of its own on phones (it can be folded away).
+  description: {
+    title: "Description",
   },
   details: {
     title: "Details",

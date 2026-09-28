@@ -17,11 +17,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 // either side.
 //
 // One view per REAL photo of the product: a product with a single photo shows
-// just that (no thumbnails, no dots), a product with several gets a swipeable
-// track on phones and clickable thumbnails on desktop. A product with no photo
-// yet shows the single gradient placeholder. Nothing is invented — the extra
-// "views" this gallery used to synthesize would sit beside a real photograph
-// as empty tiles.
+// just that (no thumbnails, no counter), a product with several gets a
+// swipeable track with a "2/5" counter on phones and tablets and clickable
+// thumbnails on desktop. A product with no photo yet shows the single gradient
+// placeholder. Nothing is invented — the extra "views" this gallery used to
+// synthesize would sit beside a real photograph as empty tiles.
+//
+// On phones (below `sm`) the photos run edge to edge, as in a shopping app.
 function ProductGallery({
   productId,
   productName,
@@ -58,7 +60,7 @@ function ProductGallery({
 
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-card border border-border/70 bg-card shadow-soft">
+      <div className="relative overflow-hidden rounded-card border border-border/70 bg-card shadow-soft max-sm:-mx-4 max-sm:rounded-none max-sm:border-0 max-sm:shadow-none">
         <div
           ref={trackRef}
           onScroll={handleScroll}
@@ -92,19 +94,17 @@ function ProductGallery({
         >
           <ZoomIn className="size-[18px]" />
         </span>
+        {many && (
+          // Decorative: each slide's own button already says "image i of N".
+          // The dark pill keeps the white numbers readable over any photo.
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-3 left-3 rounded-full bg-charcoal/75 px-2.5 py-1 text-xs font-semibold text-white tabular-nums lg:hidden"
+          >
+            {t("product.gallery.counter", { index: activeIndex + 1, total: views.length })}
+          </span>
+        )}
       </div>
-
-      {many && (
-        // Decorative: each slide's own button already says "image i of N".
-        <div aria-hidden className="flex justify-center gap-1.5 lg:hidden">
-          {views.map((_, i) => (
-            <span
-              key={`${productId}-dot-${i}`}
-              className={cn("size-1.5 rounded-full", i === activeIndex ? "bg-forest" : "bg-border")}
-            />
-          ))}
-        </div>
-      )}
 
       {many && (
         <div className="hidden gap-2 lg:flex">

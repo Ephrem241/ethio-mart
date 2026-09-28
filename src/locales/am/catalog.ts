@@ -33,6 +33,7 @@ export const catalog: Dictionary["catalog"] = {
     priceUnder: "ከ{amount} በታች",
     priceRange: "{min} – {max}",
     priceOver: "{amount} እና በላይ",
+    activeCount: { one: "{count} ማጣሪያ ተተግብሯል", other: "{count} ማጣሪያዎች ተተግብረዋል" },
   },
   sort: {
     label: "ምርቶችን ደርድር",
@@ -51,6 +52,9 @@ export const catalog: Dictionary["catalog"] = {
     label: "የገጽ ቁጥሮች",
     previous: "ቀዳሚ ገጽ",
     next: "ቀጣይ ገጽ",
+    loadMore: "ተጨማሪ አሳይ",
+    loading: "በመጫን ላይ…",
+    loadFailed: "ተጨማሪ ምርቶችን መጫን አልተቻለም። ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።",
   },
 }
 
@@ -79,6 +83,10 @@ export const product: Dictionary["product"] = {
     enlarge: "የ{name} ምስል {index} ከ{total} አሳድግ",
     view: "{name} — እይታ {index}",
     thumb: "እይታ {index}",
+    counter: "{index}/{total}",
+  },
+  description: {
+    title: "መግለጫ",
   },
   details: {
     title: "ዝርዝሮች",

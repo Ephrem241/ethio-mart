@@ -52,15 +52,19 @@ function CheckoutDeliverySection() {
           id="subCity"
           required
           label={t("checkout.delivery.subCity")}
+          autoComplete="address-level3"
           registration={register("subCity")}
           error={errors.subCity?.message}
         />
       </div>
 
+      {/* Autofill hints for phones' saved addresses: city → sub-city
+          (address-level3) → woreda (address-level4) → the street line. */}
       <FormField
         id="woreda"
         required
         label={t("checkout.delivery.woreda")}
+        autoComplete="address-level4"
         registration={register("woreda")}
         error={errors.woreda?.message}
       />
@@ -68,6 +72,7 @@ function CheckoutDeliverySection() {
         id="address"
         required
         label={t("checkout.delivery.address")}
+        autoComplete="address-line1"
         registration={register("address")}
         error={errors.address?.message}
       />

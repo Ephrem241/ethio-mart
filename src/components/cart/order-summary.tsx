@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Truck } from "lucide-react"
+import { cn } from "cn"
 
 import { formatPrice } from "@/lib/currency"
 import { useT } from "@/lib/i18n/provider"
@@ -15,6 +16,7 @@ function OrderSummary({
   canCheckout,
   deliveryFee,
   hideCta,
+  ctaClassName,
   bare,
 }: {
   subtotal: number
@@ -29,6 +31,8 @@ function OrderSummary({
   deliveryFee?: number
   /** Checkout supplies its own "Place order" submit button instead. */
   hideCta?: boolean
+  /** Extra classes for the checkout button (the cart hides it on phones, where a pinned bar has one). */
+  ctaClassName?: string
 }) {
   const t = useT()
   const total = subtotal + (deliveryFee ?? 0)
@@ -107,14 +111,14 @@ function OrderSummary({
       </div>
 
       {hideCta ? null : canCheckout ? (
-        <Button asChild size="lg" className="w-full">
+        <Button asChild size="lg" className={cn("w-full", ctaClassName)}>
           <Link href="/checkout">{t("cart.summary.continue")}</Link>
         </Button>
       ) : (
         // A disabled <a> isn't actually inert (the `disabled` attribute/CSS
         // pseudo-class don't apply to anchors), so a real, non-navigating
         // <button disabled> is used here instead of a Link-wrapped one.
-        <Button size="lg" className="w-full" disabled>
+        <Button size="lg" className={cn("w-full", ctaClassName)} disabled>
           {t("cart.summary.continue")}
         </Button>
       )}

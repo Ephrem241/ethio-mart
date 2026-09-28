@@ -19,10 +19,13 @@ function FilterFields({
 }) {
   const t = useT()
 
+  // Below `lg` these fields are in the phone's bottom sheet: every option is a
+  // full 44px row that is easy to tap, with a bigger radio/checkbox. The
+  // desktop sidebar uses the same fields at their compact size.
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-lg:[&_input]:size-5 max-lg:[&_label]:min-h-11 max-lg:[&_label]:text-[15px]">
       {showCategory && (
-        <fieldset className="space-y-2">
+        <fieldset className="space-y-2 max-lg:space-y-0">
           <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.category")}</legend>
           <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-text">
             <input
@@ -55,7 +58,7 @@ function FilterFields({
         </fieldset>
       )}
 
-      <fieldset className="space-y-2">
+      <fieldset className="space-y-2 max-lg:space-y-0">
         <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.price")}</legend>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-text">
           <input
@@ -87,7 +90,7 @@ function FilterFields({
         ))}
       </fieldset>
 
-      <fieldset className="space-y-2">
+      <fieldset className="space-y-2 max-lg:space-y-0">
         <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.availability")}</legend>
         <label className="flex cursor-pointer items-center justify-between gap-2 text-sm text-muted-text">
           <span className="flex items-center gap-2">
@@ -103,7 +106,7 @@ function FilterFields({
         </label>
       </fieldset>
 
-      <fieldset className="space-y-2">
+      <fieldset className="space-y-2 max-lg:space-y-0">
         <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.rating")}</legend>
         <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-text">
           <input
@@ -138,7 +141,7 @@ function FilterFields({
         })}
       </fieldset>
 
-      <fieldset className="space-y-2">
+      <fieldset className="space-y-2 max-lg:space-y-0">
         <legend className="mb-2 text-sm font-medium text-charcoal">{t("catalog.filters.discount")}</legend>
         <label className="flex cursor-pointer items-center justify-between gap-2 text-sm text-muted-text">
           <span className="flex items-center gap-2">

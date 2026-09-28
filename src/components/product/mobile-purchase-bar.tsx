@@ -1,27 +1,33 @@
 "use client"
 
 import { useT } from "@/lib/i18n/provider"
-import type { ProductWithCategory } from "@/lib/services/catalog"
-import { useAddToCart } from "@/lib/hooks/use-add-to-cart"
 import { Button } from "@/components/ui/button"
-import { Price } from "@/components/product/price"
 
-// Pinned to the bottom of the screen, in the place BottomNav has on other
-// pages (BottomNav is not shown on product pages); the bottom padding keeps
-// the button clear of the iPhone home indicator. Kept to a single action (no
-// quantity/Buy Now/favorite) so it doesn't become a second, competing
-// purchase-actions cluster.
-function MobilePurchaseBar({ product }: { product: ProductWithCategory }) {
+// The product page's actions on phones and tablets: Add to cart and Buy now,
+// pinned to the bottom of the screen in BottomNav's place (BottomNav is not
+// shown on product pages). The bottom padding keeps the buttons clear of the
+// iPhone home indicator. ProductPurchaseActions renders it and hands it its own
+// handlers, so these buttons use the quantity chosen on the page; the inline
+// pair there is desktop-only.
+function MobilePurchaseBar({
+  outOfStock,
+  onAddToCart,
+  onBuyNow,
+}: {
+  outOfStock: boolean
+  onAddToCart: () => void
+  onBuyNow: () => void
+}) {
   const t = useT()
-  const addToCart = useAddToCart()
-  const outOfStock = product.stock <= 0
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgb(23_23_23/0.18)] backdrop-blur-md lg:hidden">
-      <div className="flex items-center justify-between gap-4">
-        <Price amount={product.price} t={t} className="text-lg" />
-        <Button size="lg" disabled={outOfStock} onClick={() => addToCart(product.id, 1)} className="flex-1">
+      <div className="mx-auto grid max-w-xl grid-cols-2 gap-2.5">
+        <Button size="lg" className="min-w-0 px-3" disabled={outOfStock} onClick={onAddToCart}>
           {outOfStock ? t("product.stock.out") : t("product.addToCart")}
+        </Button>
+        <Button size="lg" variant="outline" className="min-w-0 px-3" disabled={outOfStock} onClick={onBuyNow}>
+          {t("product.buyNow")}
         </Button>
       </div>
     </div>

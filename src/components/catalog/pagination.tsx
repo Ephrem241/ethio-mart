@@ -57,8 +57,9 @@ async function Pagination({
   const t = await getT()
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
 
+  // Desktop only: phones and tablets get "Load more" instead (LoadMoreProducts).
   return (
-    <nav aria-label={t("catalog.pagination.label")} className="flex items-center justify-center gap-1">
+    <nav aria-label={t("catalog.pagination.label")} className="hidden items-center justify-center gap-1 lg:flex">
       <PageLink
         page={page - 1}
         disabled={page <= 1}
