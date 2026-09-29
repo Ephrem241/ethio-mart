@@ -14,7 +14,7 @@ const product = {
   stock: 12,
   sku: "HL-001",
   category_id: "c1",
-  image_url: null,
+  image_urls: [],
   is_featured: false,
   is_popular: false,
   is_active: true,
@@ -45,10 +45,16 @@ describe("productSchema", () => {
       ["stock", -1],
       ["stock", 1.5],
       ["compare_at_price", -10],
-      ["image_url", "not a url"],
     ] as const) {
       expect(fieldsWithErrors(productSchema.safeParse({ ...product, [field]: value }))).toContain(field)
     }
+  })
+
+  it("takes a list of photo addresses, up to 8, each a real URL", () => {
+    const url = (n: number) => `https://example.com/p${n}.jpg`
+    expect(productSchema.safeParse({ ...product, image_urls: [url(1), url(2), url(3)] }).success).toBe(true)
+    expect(fieldsWithErrors(productSchema.safeParse({ ...product, image_urls: [url(1), "not a url"] }))).toContain("image_urls.1")
+    expect(fieldsWithErrors(productSchema.safeParse({ ...product, image_urls: Array.from({ length: 9 }, (_, i) => url(i)) }))).toContain("image_urls")
   })
 
   it("needs both languages' name and description", () => {

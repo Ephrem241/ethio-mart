@@ -3,6 +3,7 @@ import { z } from "zod"
 import "@/lib/i18n/zod" // translated fallbacks for zod's default messages
 
 import { translate } from "@/lib/i18n/translate"
+import { MAX_PRODUCT_IMAGES } from "@/lib/services/image-sync"
 
 // Plain z.number()/nullable() rather than z.coerce.number() — z.coerce's
 // input type is `unknown`, which conflicts with react-hook-form's single
@@ -29,7 +30,8 @@ export const productSchema = z.object({
   stock: z.number().int().min(0, { error: () => translate("admin.validation.stock") }),
   sku: z.string().trim().min(1, { error: () => translate("admin.validation.sku") }),
   category_id: z.string().min(1, { error: () => translate("admin.validation.category") }),
-  image_url: z.string().trim().url({ error: () => translate("admin.validation.url") }).nullable(),
+  // Main photo first; the admin can add up to MAX_PRODUCT_IMAGES.
+  image_urls: z.array(z.string().trim().url({ error: () => translate("admin.validation.url") })).max(MAX_PRODUCT_IMAGES),
   is_featured: z.boolean(),
   is_popular: z.boolean(),
   is_active: z.boolean(),

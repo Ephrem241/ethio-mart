@@ -12,7 +12,7 @@ import { useAdminCategories } from "@/lib/hooks/use-admin-data"
 import { createProduct, updateProduct } from "@/lib/services/admin-catalog"
 import { productSchema, type ProductValues } from "@/components/admin/product-schema"
 import { FormField } from "@/components/forms/form-field"
-import { ImageUploadField } from "@/components/admin/image-upload-field"
+import { ProductImagesField } from "@/components/admin/product-images-field"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
@@ -38,7 +38,7 @@ function toDefaultValues(product?: Product): ProductValues {
     stock: product?.stock ?? 0,
     sku: product?.sku ?? "",
     category_id: product?.category_id ?? "",
-    image_url: product?.image_url ?? null,
+    image_urls: product?.image_urls ?? (product?.image_url ? [product.image_url] : []),
     is_featured: product?.is_featured ?? false,
     is_popular: product?.is_popular ?? false,
     is_active: product?.is_active ?? true,
@@ -176,16 +176,14 @@ function AdminProductForm({ product }: { product?: Product }) {
       </div>
 
       <Controller
-        name="image_url"
+        name="image_urls"
         control={control}
         render={({ field }) => (
-          <ImageUploadField
-            id="image_url"
-            label={t("admin.productForm.image")}
-            bucket="products"
+          <ProductImagesField
+            id="image_urls"
             value={field.value}
             onChange={field.onChange}
-            error={errors.image_url?.message}
+            error={errors.image_urls?.message ?? errors.image_urls?.find?.((item) => item?.message)?.message}
           />
         )}
       />

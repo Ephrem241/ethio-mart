@@ -22,7 +22,16 @@ the photographer.
 
 `manifest.json` maps every product slug and category slug to its Unsplash photo
 ID. The files are those photos, cropped (square for products, 4:5 for
-categories) and compressed. Upload them with:
+categories) and compressed.
+
+Each product also has two more photos, `<slug>--2.jpg` and `<slug>--3.jpg`
+(listed under `productExtras` in `manifest.json`), shown after the main one in
+the product gallery. Where the photographer shot the same item several times
+they are that item from another angle; otherwise they are the closest matching
+item (another view, in use, or a close-up), not the identical product. Real
+photos of your own stock should replace them.
+
+Upload them with:
 
 ```
 node --env-file=.env --import tsx scripts/seed-images.ts

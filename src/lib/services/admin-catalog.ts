@@ -5,6 +5,7 @@ import { translate } from "@/lib/i18n/translate"
 import type { Product } from "@/lib/data/products"
 import type { Category } from "@/lib/data/categories"
 import { toProduct, type ProductRow } from "@/lib/services/catalog"
+import { planImageSync, type ImageRow } from "@/lib/services/image-sync"
 
 // Admin product/category management against the real database. Authorization
 // is enforced by Postgres RLS (every write requires is_admin()), not by this
@@ -30,7 +31,7 @@ export interface ProductFormValues {
   stock: number
   sku: string
   category_id: string
-  image_url: string | null
+  image_urls: string[] // main photo first
   is_featured: boolean
   is_popular: boolean
   is_active: boolean
@@ -123,34 +124,36 @@ export async function fetchAdminCategories(): Promise<Category[]> {
 // Products
 // ---------------------------------------------------------------------------
 
-// The form's single "image" maps onto the product's primary image row
-// (sort_order 0) in `product_images`, matching the spec's table shape so
-// multiple images can be added later without a schema change.
-async function syncPrimaryImage(productId: string, imageUrl: string | null, altText: string) {
+// The form's photo list (main photo first) becomes the product's
+// `product_images` rows, sort_order 0..n. planImageSync keeps rows whose photo
+// is still listed, so an unchanged save writes nothing. Returns false if any
+// write failed, so the caller can say so instead of reporting success.
+async function syncProductImages(productId: string, imageUrls: string[], altText: string): Promise<boolean> {
   const supabase = createClient()
-
-  if (!imageUrl) {
-    await supabase.from("product_images").delete().eq("product_id", productId)
-    return
-  }
-
-  const { data: existing } = await supabase
+  const { data: existing, error } = await supabase
     .from("product_images")
-    .select("id")
+    .select("id, image_url, sort_order")
     .eq("product_id", productId)
-    .order("sort_order", { ascending: true })
-    .limit(1)
+  if (error) return false
 
-  if (existing && existing.length > 0) {
-    await supabase
-      .from("product_images")
-      .update({ image_url: imageUrl, alt_text: altText })
-      .eq("id", existing[0].id)
-  } else {
-    await supabase
-      .from("product_images")
-      .insert({ product_id: productId, image_url: imageUrl, alt_text: altText, sort_order: 0 })
-  }
+  const plan = planImageSync((existing ?? []) as ImageRow[], imageUrls)
+  const writes = [
+    ...(plan.remove.length ? [supabase.from("product_images").delete().in("id", plan.remove)] : []),
+    ...plan.reorder.map((row) => supabase.from("product_images").update({ sort_order: row.sort_order }).eq("id", row.id)),
+    ...(plan.insert.length
+      ? [supabase.from("product_images").insert(plan.insert.map((row) => ({ ...row, product_id: productId, alt_text: altText })))]
+      : []),
+  ]
+  const results = await Promise.all(writes)
+  return results.every((result) => !result.error)
+}
+
+function cleanImageUrls(urls: string[]): string[] {
+  return urls.map((url) => url.trim()).filter(Boolean)
+}
+
+function withImages(row: ProductRow, imageUrls: string[]): Product {
+  return toProduct({ ...row, product_images: imageUrls.map((image_url, sort_order) => ({ image_url, sort_order })) })
 }
 
 function productColumns(input: ProductFormValues) {
@@ -184,9 +187,9 @@ export async function createProduct(input: ProductFormValues): Promise<Result<Pr
 
   if (error) return fail(describe(error, "product"))
 
-  const imageUrl = input.image_url?.trim() || null
-  await syncPrimaryImage(data.id, imageUrl, input.name_en.trim())
-  return ok(toProduct({ ...(data as ProductRow), product_images: imageUrl ? [{ image_url: imageUrl, sort_order: 0 }] : [] }))
+  const imageUrls = cleanImageUrls(input.image_urls)
+  if (!(await syncProductImages(data.id, imageUrls, input.name_en.trim()))) return fail(translate("admin.errors.imagesNotSaved"))
+  return ok(withImages(data as ProductRow, imageUrls))
 }
 
 export async function updateProduct(id: string, input: ProductFormValues): Promise<Result<Product>> {
@@ -203,9 +206,9 @@ export async function updateProduct(id: string, input: ProductFormValues): Promi
   if (error) return fail(describe(error, "product"))
   if (!data || data.length === 0) return fail(translate("admin.errors.productNotFound"))
 
-  const imageUrl = input.image_url?.trim() || null
-  await syncPrimaryImage(id, imageUrl, input.name_en.trim())
-  return ok(toProduct({ ...(data[0] as ProductRow), product_images: imageUrl ? [{ image_url: imageUrl, sort_order: 0 }] : [] }))
+  const imageUrls = cleanImageUrls(input.image_urls)
+  if (!(await syncProductImages(id, imageUrls, input.name_en.trim()))) return fail(translate("admin.errors.imagesNotSaved"))
+  return ok(withImages(data[0] as ProductRow, imageUrls))
 }
 
 // No blocking guard: order line items are point-in-time snapshots whose

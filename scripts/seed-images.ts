@@ -3,7 +3,8 @@
 //   node --env-file=.env --import tsx scripts/seed-images.ts
 //   node --env-file=.env --import tsx scripts/seed-images.ts --cleanup-test-images
 //
-// Puts real photography on the seeded catalog: the 32 product photos and 8
+// Puts real photography on the seeded catalog: the product photos (3 per
+// product: `<slug>.jpg` plus `<slug>--2.jpg` and `<slug>--3.jpg`) and 8
 // category photos in scripts/seed-images/ are uploaded to the project's public
 // `products` and `categories` Storage buckets, and the rows that point at them
 // (product_images, categories.image_url) are updated. Uses the service-role key
@@ -56,13 +57,25 @@ async function upload(bucket: "products" | "categories", slug: string, file: str
   return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
 }
 
+// `<slug>.jpg` is a product's main photo (sort_order 0); `<slug>--2.jpg`,
+// `<slug>--3.jpg`, ... are the photos after it (sort_order 1, 2, ...). A double
+// dash never occurs in a slug, so the two can't be confused.
+function parseProductFile(name: string): { slug: string; position: number } {
+  const match = name.match(/^(.+?)(?:--(\d+))?\.jpg$/)!
+  return { slug: match[1], position: match[2] ? Number(match[2]) - 1 : 0 }
+}
+
 async function seedProducts() {
   const dir = join(ROOT, "products")
   const files = readdirSync(dir).filter((f) => f.endsWith(".jpg"))
-  console.log(`Products: ${files.length} photos`)
-
+  const bySlug = new Map<string, { position: number; name: string }[]>()
   for (const name of files) {
-    const slug = name.replace(/\.jpg$/, "")
+    const { slug, position } = parseProductFile(name)
+    bySlug.set(slug, [...(bySlug.get(slug) ?? []), { position, name }])
+  }
+  console.log(`Products: ${files.length} photos for ${bySlug.size} products`)
+
+  for (const [slug, photos] of bySlug) {
     const { data: product, error } = await supabase
       .from("products")
       .select("id, name_en")
@@ -74,29 +87,32 @@ async function seedProducts() {
       continue
     }
 
-    const url = await upload("products", slug, join(dir, name))
-
-    // The product's main image is its first row (lowest sort_order).
     const { data: existing, error: selectError } = await supabase
       .from("product_images")
-      .select("id, image_url")
+      .select("id, image_url, sort_order")
       .eq("product_id", product.id)
       .order("sort_order", { ascending: true })
-      .limit(1)
     if (selectError) throw new Error(`Reading images of ${slug}: ${selectError.message}`)
+    const rows = existing ?? []
 
-    const first = existing?.[0]
-    if (first?.image_url === url) {
-      console.log(`  - ${slug}: up to date`)
-      continue
+    const changes: string[] = []
+    for (const { position, name } of photos.sort((a, b) => a.position - b.position)) {
+      const url = await upload("products", position === 0 ? slug : `${slug}-${position + 1}`, join(dir, name))
+      // The main photo is the product's first row, whatever its sort_order;
+      // every other photo owns the row at its position. Rows past the seeded
+      // photos (added by an admin) are left alone.
+      const row = position === 0 ? rows[0] : rows.find((r) => r.sort_order === position)
+      if (row?.image_url === url) continue
+
+      const alt = position === 0 ? product.name_en : `${product.name_en} (${position + 1})`
+      const write = row
+        ? supabase.from("product_images").update({ image_url: url, alt_text: alt }).eq("id", row.id)
+        : supabase.from("product_images").insert({ product_id: product.id, image_url: url, alt_text: alt, sort_order: position })
+      const { error: writeError } = await write
+      if (writeError) throw new Error(`Writing image ${position + 1} of ${slug}: ${writeError.message}`)
+      changes.push(`${row ? "updated" : "added"} ${position + 1}`)
     }
-
-    const write = first
-      ? supabase.from("product_images").update({ image_url: url, alt_text: product.name_en }).eq("id", first.id)
-      : supabase.from("product_images").insert({ product_id: product.id, image_url: url, alt_text: product.name_en, sort_order: 0 })
-    const { error: writeError } = await write
-    if (writeError) throw new Error(`Writing image of ${slug}: ${writeError.message}`)
-    console.log(`  - ${slug}: ${first ? "updated" : "added"}`)
+    console.log(`  - ${slug}: ${changes.length ? changes.join(", ") : "up to date"}`)
   }
 }
 

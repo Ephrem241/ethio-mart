@@ -1,3 +1,5 @@
+import path from "node:path"
+
 import { en } from "@/locales/en"
 
 import { admin, createTestProduct, placeOrderAs, TEST_SLUG_PREFIX } from "./support/db"
@@ -6,8 +8,8 @@ import { signIn } from "./support/ui"
 
 // The admin's create / edit / delete work beyond flow 4 (which creates and
 // edits a product and moves one order along): categories end to end, product
-// toggles and deletion, duplicate slugs, the homepage copy, and the order
-// status rules. Test data only (e2e- slugs, e2e- accounts); the homepage copy
+// toggles and deletion, duplicate slugs, the product photo list, the homepage
+// copy, and the order status rules. Test data only (e2e- slugs, e2e- accounts); the homepage copy
 // is put back exactly as it was.
 
 const categoryRow = (page: import("@playwright/test").Page, name: string) => page.locator("tbody tr").filter({ hasText: name })
@@ -135,6 +137,62 @@ test.describe("Admin CRUD", () => {
       await toast(page, en.admin.products.deleted.replace("{name}", product.name_en))
       await expect.poll(flags).toBeNull()
     })
+  })
+
+  test("product photos: add several, remove and reorder, and the shop shows them in that order", async ({ page, browser, adminUser }) => {
+    const product = await createTestProduct()
+    const photosDir = path.join(process.cwd(), "scripts", "seed-images", "products")
+    const files = ["canvas-tote-bag.jpg", "leather-wallet.jpg", "woven-belt.jpg"].map((name) => path.join(photosDir, name))
+    const saved = async () =>
+      ((await admin().from("product_images").select("image_url, sort_order").eq("product_id", product.id).order("sort_order")).data ?? []).map((row) => row.image_url)
+    const uploaded: string[] = []
+
+    try {
+      await signIn(page, adminUser)
+      await page.goto(`/admin/products/${product.id}/edit`)
+      const photos = page.getByRole("group", { name: en.admin.productForm.images })
+      // The address each thumbnail shows, in list order (next/image wraps it in /_next/image?url=...).
+      const listed = () =>
+        photos.locator("li img").evaluateAll((imgs) =>
+          imgs.map((img) => {
+            const src = new URL((img as HTMLImageElement).src, location.href)
+            return src.pathname === "/_next/image" ? src.searchParams.get("url")! : src.href
+          })
+        )
+
+      await photos.locator('input[type="file"]').setInputFiles(files)
+      await expect(photos.locator("li")).toHaveCount(3, { timeout: 60000 })
+      await expect(photos.getByText(en.admin.productForm.mainPhoto)).toHaveCount(1)
+      const [first, second, third] = await listed()
+      uploaded.push(first, second, third)
+
+      await photos.getByRole("button", { name: en.admin.productForm.removePhoto.replace("{n}", "2") }).click()
+      await photos.getByRole("button", { name: en.admin.productForm.moveEarlier.replace("{n}", "2") }).click()
+      await expect.poll(listed).toEqual([third, first])
+      // The moved photo keeps keyboard focus (now photo 1, so its "later" button).
+      await expect(photos.getByRole("button", { name: en.admin.productForm.moveLater.replace("{n}", "1") })).toBeFocused()
+
+      await page.locator("main form").getByRole("button", { name: en.admin.productForm.save, exact: true }).click()
+      await page.waitForURL(/\/admin\/products$/)
+      expect(await saved()).toEqual([third, first])
+
+      const context = await browser.newContext()
+      const visitor = await context.newPage()
+      await visitor.goto(`/product/${product.slug}`)
+      await expect(visitor.getByRole("button", { name: en.product.gallery.thumb.replace("{index}", "2") })).toBeVisible()
+      await expect(visitor.getByRole("button", { name: en.product.gallery.thumb.replace("{index}", "3") })).toHaveCount(0)
+      await context.close()
+
+      // Saving again without changes keeps the same rows.
+      const before = (await admin().from("product_images").select("id").eq("product_id", product.id).order("sort_order")).data
+      await page.goto(`/admin/products/${product.id}/edit`)
+      await page.locator("main form").getByRole("button", { name: en.admin.productForm.save, exact: true }).click()
+      await page.waitForURL(/\/admin\/products$/)
+      expect((await admin().from("product_images").select("id").eq("product_id", product.id).order("sort_order")).data).toEqual(before)
+    } finally {
+      const paths = uploaded.map((url) => url.split("/storage/v1/object/public/products/")[1]).filter(Boolean)
+      if (paths.length) await admin().storage.from("products").remove(paths)
+    }
   })
 
   test("homepage copy: a saved change appears on the storefront", async ({ page, browser, adminUser }) => {
