@@ -171,6 +171,14 @@ function matchesQuery(product: Product, query: string): boolean {
   )
 }
 
+// Products the shop may show: switching a category off hides its products
+// too (the category page, listings, search, the product page and checkout
+// all agree — see catalog-queries.ts, catalog-client.ts and migration 0018).
+export function inActiveCategories<P extends Pick<Product, "category_id">>(products: P[], categories: Category[]): P[] {
+  const active = new Set(categories.filter((c) => c.is_active).map((c) => c.id))
+  return products.filter((p) => active.has(p.category_id))
+}
+
 // Applies every filter EXCEPT pagination/sort. Shared by listProducts (full
 // filter set) and computeFilterFacets (base scope only), so counts and
 // results can never silently drift out of sync (Rule 4).

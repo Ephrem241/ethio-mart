@@ -25,7 +25,9 @@ function toProductWithCategory(row: ProductWithCategoryJoin): ProductWithCategor
   }
 }
 
-const PRODUCT_SELECT = "*, product_images(image_url, sort_order), categories(name_en, name_am, slug)"
+// !inner, with the categories.is_active filter below: products of a switched-off
+// category count as unavailable (cart, favorites), like deactivated ones.
+const PRODUCT_SELECT = "*, product_images(image_url, sort_order), categories!inner(name_en, name_am, slug)"
 
 // Active products only, matching what a shopper can actually buy. An id that
 // no longer resolves (deleted or deactivated product) is simply absent, which
@@ -41,6 +43,7 @@ export async function fetchProductsByIds(ids: string[]): Promise<ProductWithCate
     .select(PRODUCT_SELECT)
     .in("id", validIds)
     .eq("is_active", true)
+    .eq("categories.is_active", true)
 
   if (error) throw new Error(`Failed to load products: ${error.message}`) // i18n-ignore: developer-facing
   return (data as ProductWithCategoryJoin[]).map(toProductWithCategory)
@@ -74,8 +77,9 @@ export async function searchSuggestions(query: string): Promise<SearchSuggestion
   const [productsResult, categoriesResult] = await Promise.all([
     supabase
       .from("products")
-      .select("id, slug, name_en, name_am")
+      .select("id, slug, name_en, name_am, categories!inner(is_active)")
       .eq("is_active", true)
+      .eq("categories.is_active", true)
       .or(nameMatches)
       .limit(5),
     supabase
@@ -87,7 +91,7 @@ export async function searchSuggestions(query: string): Promise<SearchSuggestion
   ])
 
   return {
-    products: productsResult.data ?? [],
+    products: (productsResult.data ?? []).map(({ id, slug, name_en, name_am }) => ({ id, slug, name_en, name_am })),
     categories: (categoriesResult.data as Pick<Category, "id" | "slug" | "name_en" | "name_am">[] | null) ?? [],
   }
 }

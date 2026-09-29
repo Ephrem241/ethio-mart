@@ -6,6 +6,7 @@ import {
   RATING_THRESHOLDS,
   computeFilterFacets,
   getStockStatus,
+  inActiveCategories,
   isOnSale,
   listCategoriesWithCount,
   listProducts,
@@ -300,5 +301,21 @@ describe("parseListingParams", () => {
   it("uses the first value of a repeated parameter and treats empty ones as absent", () => {
     expect(parseListingParams({ category: ["fashion", "kitchen"] }).categorySlug).toBe("fashion")
     expect(parseListingParams({ category: "", q: "" })).toMatchObject({ categorySlug: undefined, query: undefined })
+  })
+})
+
+describe("inActiveCategories", () => {
+  it("drops the products of a switched-off category and keeps the rest in order", () => {
+    const on = makeCategory({ is_active: true })
+    const off = makeCategory({ is_active: false })
+    const a = makeProduct({ category_id: on.id })
+    const b = makeProduct({ category_id: off.id })
+    const c = makeProduct({ category_id: on.id })
+    expect(inActiveCategories([a, b, c], [on, off])).toEqual([a, c])
+  })
+
+  it("drops products whose category is missing altogether", () => {
+    const on = makeCategory({ is_active: true })
+    expect(inActiveCategories([makeProduct({ category_id: "gone" })], [on])).toEqual([])
   })
 })

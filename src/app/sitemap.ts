@@ -50,8 +50,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     supabase.from("categories").select("slug, created_at").eq("is_active", true).order("sort_order"),
     supabase
       .from("products")
-      .select("slug, updated_at, product_images(image_url, sort_order)")
+      .select("slug, updated_at, product_images(image_url, sort_order), categories!inner(is_active)")
       .eq("is_active", true)
+      .eq("categories.is_active", true)
       .order("created_at"),
   ])
 

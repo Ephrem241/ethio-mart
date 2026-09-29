@@ -31,6 +31,20 @@ export function getOrderStatusMeta(
   }
 }
 
+// Where an order may go next — the same rule the database enforces (migration
+// 0018): forward along the lifecycle (skipping a stage is allowed), or to
+// cancelled from any open status; delivered and cancelled are final.
+export function allowedNextStatuses(status: OrderStatus): OrderStatus[] {
+  if (status === "delivered" || status === "cancelled") return []
+  const at = ORDER_STATUSES.indexOf(status)
+  return ORDER_STATUSES.filter((next, i) => next === "cancelled" || i > at)
+}
+
+// What an admin's status menu lists: the current status, then its next steps.
+export function statusMenuOptions(status: OrderStatus): OrderStatus[] {
+  return [status, ...allowedNextStatuses(status)]
+}
+
 export type OrderHistoryFilter = "all" | "pending" | "delivered" | "cancelled"
 
 export const ORDER_HISTORY_FILTERS: OrderHistoryFilter[] = ["all", "pending", "delivered", "cancelled"]

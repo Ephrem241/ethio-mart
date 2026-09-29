@@ -26,6 +26,14 @@ const KNOWN: { pattern: RegExp; key: MessageKey; params?: (match: RegExpMatchArr
     params: (m) => ({ status: translate(`order.status.${m[1]}` as MessageKey) }),
   },
   { pattern: /^Order is already in this status/i, key: "errors.sameStatus" },
+  {
+    pattern: /^An order can't go from (\w+) to (\w+)/i,
+    key: "errors.statusBackwards",
+    params: (m) => ({
+      from: translate(`order.status.${m[1]}` as MessageKey),
+      to: translate(`order.status.${m[2]}` as MessageKey),
+    }),
+  },
   { pattern: /^Enter a valid email address/i, key: "validation.email" },
   // The request itself never arrived: offline, or the service is unreachable (each browser words it differently).
   { pattern: /fetch failed|failed to fetch|network ?error|network request failed|load failed/i, key: "errors.network" },

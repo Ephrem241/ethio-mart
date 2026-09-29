@@ -5,6 +5,7 @@ import { isValidSlug } from "@/lib/slug"
 import type { Category } from "@/lib/data/categories"
 import {
   toProduct,
+  inActiveCategories,
   listCategoriesWithCount,
   pickFeatured,
   pickPopular,
@@ -56,8 +57,7 @@ const loadCatalog = cache(async () => {
 
   // "Recommended" = catalog order: by category, then SKU within it (this is
   // exactly the order the seed data was authored in).
-  const products = (productsResult.data as ProductRow[])
-    .map(toProduct)
+  const products = inActiveCategories((productsResult.data as ProductRow[]).map(toProduct), categories)
     .sort(
       (a, b) =>
         (sortOrderById.get(a.category_id) ?? 0) - (sortOrderById.get(b.category_id) ?? 0) ||
@@ -83,9 +83,11 @@ export const getProductBySlug = cache(async (slug: string): Promise<ProductWithC
   const supabase = await createClient()
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_images(image_url, sort_order), categories(name_en, name_am, slug)")
+    // !inner + the filter: a product whose category is switched off is "not found" too.
+    .select("*, product_images(image_url, sort_order), categories!inner(name_en, name_am, slug)")
     .eq("slug", slug)
     .eq("is_active", true)
+    .eq("categories.is_active", true)
     .maybeSingle()
 
   if (error) throw new Error(`Failed to load product: ${error.message}`) // i18n-ignore: developer-facing

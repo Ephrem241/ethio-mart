@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import { createTranslator } from "@/lib/i18n/translator"
 import {
   ORDER_HISTORY_FILTERS,
+  allowedNextStatuses,
+  statusMenuOptions,
   ORDER_STATUSES,
   getOrderStatusMeta,
   matchesOrderHistoryFilter,
@@ -56,5 +58,33 @@ describe("order history filter", () => {
       const hits = (["pending", "delivered", "cancelled"] as const).filter((f) => matchesOrderHistoryFilter(status, f))
       expect(hits).toHaveLength(1)
     }
+  })
+})
+
+describe("allowedNextStatuses (mirrors the database rule, migration 0018)", () => {
+  it("moves forward only, skipping allowed, and can always cancel an open order", () => {
+    expect(allowedNextStatuses("pending")).toEqual(["confirmed", "preparing", "shipped", "delivered", "cancelled"])
+    expect(allowedNextStatuses("confirmed")).toEqual(["preparing", "shipped", "delivered", "cancelled"])
+    expect(allowedNextStatuses("preparing")).toEqual(["shipped", "delivered", "cancelled"])
+    expect(allowedNextStatuses("shipped")).toEqual(["delivered", "cancelled"])
+  })
+
+  it("never offers a step backwards", () => {
+    for (const status of ORDER_STATUSES) {
+      const at = ORDER_STATUSES.indexOf(status)
+      for (const next of allowedNextStatuses(status)) {
+        expect(next === "cancelled" || ORDER_STATUSES.indexOf(next) > at).toBe(true)
+      }
+    }
+  })
+
+  it("delivered and cancelled are final", () => {
+    expect(allowedNextStatuses("delivered")).toEqual([])
+    expect(allowedNextStatuses("cancelled")).toEqual([])
+  })
+
+  it("the admin menu lists the current status first, then the next steps", () => {
+    expect(statusMenuOptions("shipped")).toEqual(["shipped", "delivered", "cancelled"])
+    expect(statusMenuOptions("delivered")).toEqual(["delivered"])
   })
 })

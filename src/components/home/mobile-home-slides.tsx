@@ -23,9 +23,9 @@ async function DealsSlide({ settings }: { settings: HomepageSettings }) {
   return (
     <section
       aria-labelledby="deals-slide-heading"
-      className="flex h-full min-h-[460px] flex-col bg-forest text-white sm:min-h-[400px]"
+      className="flex h-full min-h-[360px] flex-col bg-forest text-white sm:min-h-[340px]"
     >
-      <div className="relative min-h-36 flex-1">
+      <div className="relative min-h-24 flex-1">
         <Image
           src="/images/home/deals-kitchen.jpg"
           alt={t("home.deals.imageAlt")}
@@ -42,16 +42,16 @@ async function DealsSlide({ settings }: { settings: HomepageSettings }) {
           <DealsCountdown {...dealsCountdown(settings)} variant="pill" />
         </Container>
       </div>
-      <Container className="pb-8">
+      <Container className="pb-5">
         <p className="text-xs font-semibold tracking-[0.2em] text-gold uppercase">{settings.promoEyebrow}</p>
-        <h2 id="deals-slide-heading" className="mt-2 font-display text-3xl leading-[1.1] font-semibold sm:text-4xl">
+        <h2 id="deals-slide-heading" className="mt-2 font-display text-2xl leading-[1.1] font-semibold sm:text-3xl">
           {settings.promoHeadline}
         </h2>
         <p className="mt-2 max-w-md text-sm leading-relaxed text-white sm:text-base">{settings.promoSubtext}</p>
         <Button
           size="lg"
           asChild
-          className="mt-5 bg-gold text-forest-dark hover:bg-[color-mix(in_srgb,var(--color-gold),white_18%)]"
+          className="mt-4 bg-gold text-forest-dark hover:bg-[color-mix(in_srgb,var(--color-gold),white_18%)]"
         >
           <Link href={settings.promoCtaHref}>
             {settings.promoCtaLabel}
@@ -69,9 +69,9 @@ async function LifestyleSlide() {
   return (
     <section
       aria-labelledby="lifestyle-slide-heading"
-      className="flex h-full min-h-[460px] flex-col bg-cream sm:min-h-[400px]"
+      className="flex h-full min-h-[360px] flex-col bg-cream sm:min-h-[340px]"
     >
-      <div className="relative min-h-36 flex-1">
+      <div className="relative min-h-24 flex-1">
         <Image
           src="/images/home/lifestyle-loft.jpg"
           alt={t("home.lifestyle.imageAlt")}
@@ -84,15 +84,15 @@ async function LifestyleSlide() {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-cream to-transparent"
         />
       </div>
-      <Container className="pb-8">
+      <Container className="pb-5">
         <h2
           id="lifestyle-slide-heading"
-          className="font-display text-3xl leading-[1.15] font-semibold text-charcoal sm:text-4xl"
+          className="font-display text-2xl leading-[1.15] font-semibold text-charcoal sm:text-3xl"
         >
           {t("home.lifestyle.title")}
         </h2>
         <p className="mt-2 max-w-md text-sm leading-relaxed text-charcoal sm:text-base">{t("home.lifestyle.text")}</p>
-        <Button size="lg" asChild className="mt-5">
+        <Button size="lg" asChild className="mt-4">
           <Link href="/shop">
             {t("home.lifestyle.cta")}
             <ArrowRight aria-hidden />

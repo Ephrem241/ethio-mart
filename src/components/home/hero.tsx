@@ -45,8 +45,8 @@ async function Hero({
     <section
       aria-labelledby="hero-heading"
       className={cn(
-        "relative isolate flex min-h-[460px] items-center overflow-hidden bg-cream sm:min-h-[400px]",
-        variant === "slide" ? "h-full w-full" : "left-1/2 -mt-6 w-screen -translate-x-1/2 lg:-mt-10 lg:min-h-[470px]"
+        "relative isolate flex min-h-[360px] items-center overflow-hidden bg-cream sm:min-h-[340px]",
+        variant === "slide" ? "h-full w-full" : "left-1/2 -mt-6 w-screen -translate-x-1/2 lg:-mt-10 lg:min-h-[400px]"
       )}
     >
       <Image
@@ -63,7 +63,7 @@ async function Hero({
         className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgb(243_236_226/0.96)_0%,rgb(243_236_226/0.85)_55%,rgb(243_236_226/0.4)_100%)] md:bg-[linear-gradient(90deg,rgb(243_236_226/0.98)_0%,rgb(243_236_226/0.91)_30%,rgb(243_236_226/0.18)_67%,rgb(243_236_226/0)_100%)]"
       />
 
-      <Container className="py-12 animate-in fade-in slide-in-from-bottom-3 duration-500 lg:py-16">
+      <Container className="py-8 animate-in fade-in slide-in-from-bottom-3 duration-500 lg:py-12">
         <div className="max-w-xl">
           <p className="flex items-center gap-3 text-xs font-semibold tracking-[0.24em] text-forest uppercase">
             <span aria-hidden className="h-px w-8 bg-gold" />
@@ -71,14 +71,14 @@ async function Hero({
           </p>
           <HeadlineTag
             {...(showHeading ? { id: "hero-heading" } : { "aria-hidden": true })}
-            className="mt-5 font-display text-[1.9rem] leading-[1.12] font-semibold whitespace-pre-line text-charcoal min-[400px]:text-[2.1rem] sm:text-5xl lg:text-[3.4rem]"
+            className="mt-3 font-display text-[1.6rem] leading-[1.12] font-semibold whitespace-pre-line text-charcoal min-[400px]:text-[1.75rem] sm:text-4xl lg:mt-5 lg:text-[3rem]"
           >
             {settings.heroHeadline}
           </HeadlineTag>
           {/* Full charcoal, not /80: on phones and tablets these lines run over the photo, and where
               they cross the darker foliage the softer grey measured about 3:1 (AA needs 4.5:1). */}
-          <p className="mt-5 max-w-md text-base leading-relaxed text-charcoal sm:text-lg">{settings.heroSubtext}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-charcoal sm:text-base lg:mt-4 lg:text-lg">{settings.heroSubtext}</p>
+          <div className="mt-5 flex flex-wrap gap-3 lg:mt-6">
             <Button size="lg" asChild>
               <Link href={settings.heroCtaHref}>
                 {settings.heroCtaLabel}

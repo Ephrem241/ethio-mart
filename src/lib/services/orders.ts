@@ -61,12 +61,13 @@ export type UpdateOrderStatusResult =
   | { success: true; order: OrderRecord }
   | { success: false; error: string }
 
-// Section 31 lists the six statuses as a flat set an admin "can change" an
-// order to, not a mandated sequence — skipping stages is a real operator
-// correcting a step, so it's allowed. The rules that DO apply (delivered /
-// cancelled are terminal; a no-op change is rejected; the timeline entry is
-// appended) live in a Postgres trigger, so they can't be bypassed by calling
-// the REST API directly. Its (English) error text is shown translated.
+// Skipping a stage is allowed (a real operator correcting a step); going
+// backwards is not. The rules — forward only or to cancelled, delivered /
+// cancelled final, no no-op change, the timeline entry, and cancelling puts
+// the items back in stock — live in a Postgres trigger (migrations 0003,
+// 0018), so they can't be bypassed through the REST API; allowedNextStatuses
+// (lib/order-status.ts) mirrors them for the admin's menu. The trigger's
+// (English) error text is shown translated.
 export async function updateOrderStatus(
   orderId: string,
   nextStatus: OrderStatus

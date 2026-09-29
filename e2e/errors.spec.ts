@@ -237,7 +237,7 @@ test.describe("8. Unauthorized admin access", () => {
 
   test("a customer never gets any admin page, and sees no admin content", async ({ page, shopper }) => {
     await signIn(page, shopper)
-    for (const path of ["/admin", "/admin/products", "/admin/products/new", "/admin/orders", "/admin/customers", "/admin/homepage"]) {
+    for (const path of ["/admin", "/admin/products", "/admin/products/new", "/admin/categories", "/admin/orders", "/admin/customers", "/admin/homepage"]) {
       await page.goto(path)
       await expect(page).toHaveURL(/localhost:\d+\/$/)
       await expect(page.getByText(en.admin.dashboard.todaysSales)).toHaveCount(0)

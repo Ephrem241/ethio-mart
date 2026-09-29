@@ -11,7 +11,7 @@ import { useAllOrders } from "@/lib/hooks/use-orders"
 import { useProfiles } from "@/lib/hooks/use-admin-data"
 import { updateOrderStatus } from "@/lib/services/orders"
 import { getPaymentProvider } from "@/lib/services/payment"
-import { ORDER_STATUSES } from "@/lib/order-status"
+import { statusMenuOptions } from "@/lib/order-status"
 import { formatOrderDate } from "@/lib/date"
 import { formatPrice } from "@/lib/currency"
 import { OrderStatus } from "@/components/order/order-status"
@@ -85,7 +85,7 @@ function AdminOrdersContent() {
                     aria-label={t("admin.orders.changeStatus", { number: order.order_number })}
                     className="h-7 rounded-lg border border-input bg-transparent px-1.5 text-xs text-charcoal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {ORDER_STATUSES.map((status) => (
+                    {statusMenuOptions(order.status).map((status) => (
                       <option key={status} value={status}>
                         {t(`order.status.${status}`)}
                       </option>

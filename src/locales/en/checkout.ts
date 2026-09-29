@@ -97,6 +97,7 @@ export const errors = {
   deliveryUnavailable: "Delivery is not available for this address.",
   statusTerminal: "Cannot change the status of an order that is already \"{status}\".",
   sameStatus: "Order is already in this status.",
+  statusBackwards: "An order can't go back from \"{from}\" to \"{to}\".",
   notAllowed: "You don't have permission to do that.",
   // Shown when a request never reached the shop (no connection, or the service is down).
   network: "We couldn't reach the shop. Check your internet connection and try again.",

@@ -22,6 +22,7 @@ function MobileCollapsible({
   icon,
   defaultOpen = false,
   className,
+  triggerClassName,
   children,
 }: {
   /** The content's id, for the button's aria-controls. */
@@ -31,6 +32,8 @@ function MobileCollapsible({
   defaultOpen?: boolean
   /** Classes for the content wrapper (its padding below `lg`, usually). */
   className?: string
+  /** Classes for the toggle button, merged over its defaults (e.g. the dark footer's). */
+  triggerClassName?: string
   children: ReactNode
 }) {
   const [open, setOpen] = useState(defaultOpen)
@@ -43,13 +46,16 @@ function MobileCollapsible({
           aria-expanded={open}
           aria-controls={id}
           onClick={() => setOpen((value) => !value)}
-          className="flex min-h-14 w-full items-center gap-2.5 px-5 text-left font-display text-lg font-semibold text-charcoal outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-cream/60"
+          className={cn(
+            "flex min-h-14 w-full items-center gap-2.5 px-5 text-left font-display text-lg font-semibold text-charcoal outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-cream/60",
+            triggerClassName
+          )}
         >
           {icon}
           <span className="min-w-0 flex-1">{label}</span>
           <ChevronDown
             aria-hidden
-            className={cn("size-5 shrink-0 text-muted-text transition-transform duration-200", open && "rotate-180")}
+            className={cn("size-5 shrink-0 opacity-70 transition-transform duration-200", open && "rotate-180")}
           />
         </button>
       </h2>

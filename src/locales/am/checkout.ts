@@ -92,6 +92,7 @@ export const errors: Dictionary["errors"] = {
   deliveryUnavailable: "ወደዚህ አድራሻ ማድረስ አይቻልም።",
   statusTerminal: "ሁኔታው \"{status}\" የሆነ ትዕዛዝ መቀየር አይቻልም።",
   sameStatus: "ትዕዛዙ አስቀድሞ በዚህ ሁኔታ ላይ ነው።",
+  statusBackwards: "ትዕዛዝ ከ\"{from}\" ወደ \"{to}\" መመለስ አይችልም።",
   notAllowed: "ይህን ለማድረግ ፈቃድ የለዎትም።",
   network: "ሱቁን ማግኘት አልተቻለም። የበይነመረብ ግንኙነትዎን ይፈትሹና እንደገና ይሞክሩ።",
 }

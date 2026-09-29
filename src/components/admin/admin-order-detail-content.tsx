@@ -10,7 +10,7 @@ import type { OrderStatus as Status } from "@/lib/types/orders"
 import { useOrder } from "@/lib/hooks/use-orders"
 import { useProfiles } from "@/lib/hooks/use-admin-data"
 import { updateOrderStatus } from "@/lib/services/orders"
-import { ORDER_STATUSES } from "@/lib/order-status"
+import { statusMenuOptions } from "@/lib/order-status"
 import { formatOrderDateTime } from "@/lib/date"
 import { OrderStatus } from "@/components/order/order-status"
 import { OrderItemsSection } from "@/components/order/order-items-section"
@@ -77,7 +77,7 @@ function AdminOrderDetailContent({ orderId }: { orderId: string }) {
             aria-label={t("admin.orders.changeStatusShort")}
             className="h-8 rounded-lg border border-input bg-transparent px-2 text-sm text-charcoal outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {ORDER_STATUSES.map((status) => (
+            {statusMenuOptions(order.status).map((status) => (
               <option key={status} value={status}>
                 {t(`order.status.${status}`)}
               </option>
