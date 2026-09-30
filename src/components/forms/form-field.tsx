@@ -14,6 +14,7 @@ function FormField({
   error,
   required,
   multiline,
+  rows = 2,
   registration,
 }: {
   id: string
@@ -25,6 +26,8 @@ function FormField({
   required?: boolean
   /** Two lines instead of one, for text where a line break is meaningful (a single-line input would silently drop it). */
   multiline?: boolean
+  /** Visible lines of a multiline field. */
+  rows?: number
   registration: UseFormRegisterReturn
 }) {
   const errorId = `${id}-error`
@@ -36,7 +39,7 @@ function FormField({
       {multiline ? (
         <Textarea
           id={id}
-          rows={2}
+          rows={rows}
           className="min-h-0"
           autoComplete={autoComplete}
           aria-invalid={!!error}

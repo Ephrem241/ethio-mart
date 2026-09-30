@@ -13,6 +13,19 @@ const good = {
   NEXT_PUBLIC_SUPABASE_URL: "https://abcdefgh.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: key("anon"),
   NEXT_PUBLIC_SITE_URL: "https://www.example.com",
+  ...email(),
+}
+
+function email() {
+  return {
+    SMTP_HOST: "smtp-relay.example.com",
+    SMTP_PORT: "587",
+    SMTP_USER: "shop@example.com",
+    SMTP_PASS: "not-a-real-password",
+    EMAIL_FROM: "Evael Store <orders@example.com>",
+    SHOP_NOTIFY_EMAIL: "owner@example.com",
+    EMAIL_DISPATCH_SECRET: "x".repeat(40),
+  }
 }
 
 describe("jwtRole", () => {
@@ -97,5 +110,19 @@ describe("checkEnvironment", () => {
       const env = { ...withoutSite, VERCEL_PROJECT_PRODUCTION_URL: "shop.example.com" }
       expect(checkEnvironment(env, { production: true }).warnings).toEqual([])
     })
+  })
+
+  it("email: all settings or a warning, never a public one", () => {
+    const { SMTP_PASS: _dropped, ...partial } = good
+    void _dropped
+    const partly = checkEnvironment(partial, { production: true }).warnings
+    expect(partly.some((w) => w.includes("partly configured") && w.includes("SMTP_PASS"))).toBe(true)
+
+    const none = Object.fromEntries(Object.entries(good).filter(([name]) => !(name in email())))
+    expect(checkEnvironment(none, { production: true }).warnings.some((w) => w.includes("Email is not configured"))).toBe(true)
+    expect(checkEnvironment(none, { production: false }).warnings).toEqual([])
+
+    expect(checkEnvironment({ ...good, SMTP_PORT: "smtp" }, { production: true }).warnings.some((w) => w.includes("SMTP_PORT"))).toBe(true)
+    expect(checkEnvironment({ ...good, NEXT_PUBLIC_SMTP_PASS: "hunter2" }, { production: false }).errors.some((w) => w.includes("NEXT_PUBLIC_SMTP_PASS"))).toBe(true)
   })
 })

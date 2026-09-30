@@ -2,7 +2,7 @@ import { translate } from "@/lib/i18n/translate"
 import type { MessageKey, MessageParams } from "@/lib/i18n/translator"
 
 // The database raises its own exceptions (place_order, the order-status
-// trigger, the newsletter function) in English. They are precise and meant for
+// trigger, the newsletter and contact functions) in English. They are precise and meant for
 // shoppers, but must be shown in the shopper's language — so each known
 // message maps to a translated one here. Anything unrecognised (a raw
 // Postgres or network error) becomes a generic message instead of leaking
@@ -35,6 +35,10 @@ const KNOWN: { pattern: RegExp; key: MessageKey; params?: (match: RegExpMatchArr
     }),
   },
   { pattern: /^Enter a valid email address/i, key: "validation.email" },
+  { pattern: /^Please enter your name/i, key: "contactForm.errors.name" },
+  { pattern: /^The subject is too long/i, key: "contactForm.errors.subjectTooLong" },
+  { pattern: /^Your message must be between/i, key: "contactForm.errors.messageLength" },
+  { pattern: /^Too many messages/i, key: "contactForm.errors.tooMany" },
   // The request itself never arrived: offline, or the service is unreachable (each browser words it differently).
   { pattern: /fetch failed|failed to fetch|network ?error|network request failed|load failed/i, key: "errors.network" },
 ]

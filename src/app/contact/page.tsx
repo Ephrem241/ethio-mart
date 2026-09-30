@@ -5,6 +5,7 @@ import { getT } from "@/lib/i18n/server"
 import { pageMetadata } from "@/lib/seo/metadata"
 import { getStoreContact } from "@/lib/services/store-info"
 import { InfoLink, InfoPage, InfoSection, linkClass } from "@/components/info/info-page"
+import { ContactForm } from "@/components/contact/contact-form"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT()
@@ -57,7 +58,8 @@ function ContactRow({
 }
 
 // Shows only the contact details the shop has actually set (store_settings) —
-// never a placeholder address or phone number.
+// never a placeholder address or phone number — and the message form, which
+// emails the shop (it works whether or not those details are set).
 export default async function ContactPage() {
   const [t, contact] = await Promise.all([getT(), getStoreContact()])
   const hasDetails = Boolean(contact.email || contact.phone || contact.address || contact.hours)
@@ -91,6 +93,8 @@ export default async function ContactPage() {
           <InfoLink href="/faq">{t("info.common.faqLink")}</InfoLink>
         </div>
       )}
+
+      <ContactForm />
 
       <InfoSection title={t("info.contact.orderHelpTitle")}>
         <p>{t("info.contact.orderHelpText", { example: ORDER_NUMBER_EXAMPLE })}</p>

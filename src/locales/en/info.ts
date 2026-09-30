@@ -173,3 +173,28 @@ export const info = {
       "We may update these terms; the date above shows the latest version. These terms are governed by the laws of Ethiopia.",
   },
 }
+
+// The Contact page's message form. A separate namespace from `info` because
+// the form runs in the browser, and `info` is left out of the browser's
+// dictionary (see getClientDictionary).
+export const contactForm = {
+  title: "Send us a message",
+  intro: "We'll reply to the email address you give.",
+  name: "Your name",
+  email: "Your email",
+  subject: "Subject (optional)",
+  message: "Message",
+  send: "Send message",
+  sending: "Sending…",
+  sentTitle: "Message sent",
+  sent: "Thank you, {name}. We've received your message and will reply by email.",
+  sendAnother: "Send another message",
+  // A hidden field only automated spam fills in; people never see it.
+  honeypot: "Leave this field empty",
+  errors: {
+    name: "Please enter your name.",
+    subjectTooLong: "The subject is too long.",
+    messageLength: "Your message must be between 10 and 3000 characters.",
+    tooMany: "Too many messages. Please try again later.",
+  },
+}

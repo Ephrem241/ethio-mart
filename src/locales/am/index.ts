@@ -9,7 +9,8 @@ import { order } from "./order"
 import { auth } from "./auth"
 import { account } from "./account"
 import { admin } from "./admin"
-import { info } from "./info"
+import { info, contactForm } from "./info"
+import { email } from "./email"
 
 export const am: Dictionary = {
   common,
@@ -30,4 +31,6 @@ export const am: Dictionary = {
   account,
   admin,
   info,
+  contactForm,
+  email,
 }

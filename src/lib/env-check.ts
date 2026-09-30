@@ -1,4 +1,5 @@
 import { jwtRole } from "@/lib/jwt-role"
+import { EMAIL_ENV_VARS, readEmailConfig } from "@/lib/email/config"
 
 // What the server needs to be configured with, checked when it starts (see
 // instrumentation.ts) so a mistake shows up in the deployment log at once,
@@ -48,7 +49,7 @@ export function checkEnvironment(env: Env, { production }: { production: boolean
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   for (const [name, value] of Object.entries(env)) {
     if (!name.startsWith("NEXT_PUBLIC_") || !isSet(value)) continue // i18n-ignore: an environment variable name
-    if (/SERVICE|SECRET|PRIVATE/i.test(name)) {
+    if (/SERVICE|SECRET|PRIVATE|PASS|SMTP/i.test(name)) {
       errors.push(`${name} would be published to every browser: variables starting NEXT_PUBLIC_ must never hold a secret. Rename it (without the prefix).`)
     } else if (isSet(serviceKey) && value.trim() === serviceKey && name !== "NEXT_PUBLIC_SUPABASE_ANON_KEY") {
       errors.push(`${name} has the same value as SUPABASE_SERVICE_ROLE_KEY and would be published to every browser.`)
@@ -67,6 +68,16 @@ export function checkEnvironment(env: Env, { production }: { production: boolean
       warnings.push("NEXT_PUBLIC_SITE_URL is not set: canonical links, the sitemap and share previews will point at http://localhost:3000.")
     } else if (/^https?:\/\/(localhost|127\.0\.0\.1)/i.test(site)) {
       warnings.push(`NEXT_PUBLIC_SITE_URL is ${site}: canonical links, the sitemap and share previews will point at a local address.`)
+    }
+
+    // Email (README "Email"): all of it or none of it. Without it the store
+    // still works, but order emails and contact messages only queue up.
+    const email = readEmailConfig(env)
+    const anyEmail = EMAIL_ENV_VARS.some((name) => isSet(env[name]))
+    if (!email.config && anyEmail) {
+      warnings.push(`Email is only partly configured, so nothing is sent (missing or invalid: ${email.missing.join(", ")}).`)
+    } else if (!email.config) {
+      warnings.push("Email is not configured (SMTP_HOST and the rest, see README \"Email\"): order emails and contact-form messages are queued but not sent.")
     }
   }
 

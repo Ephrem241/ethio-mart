@@ -184,18 +184,10 @@ The site is built for Vercel + Supabase. Do these in order; each step says where
      sign-in there.
    - *Authentication → Providers → Google*: the OAuth client's redirect URI is
      `https://<project>.supabase.co/auth/v1/callback`.
-   - *Authentication → Emails → SMTP Settings*: switch on **Enable custom SMTP**
-     with a real mail provider (Resend, Brevo, Postmark, Mailgun, Amazon SES …;
-     they all give you a host, port, user name and password once you have
-     verified your sender domain). Supabase's built-in mailer allows only a few
-     e-mails an hour, so password resets stop working under real traffic.
-     Then, under *Emails → Templates → Reset Password*, set the link to
-     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
-     so that a reset link also works when it is opened on a different device
-     from the one that asked for it. Test with a real address (check spam).
-     Sign-up currently signs the customer in at once (*Authentication → Sign In /
-     Providers → Email → Confirm email* is off); if you turn it on, customers
-     must click the mailed link and then sign in.
+   - *Authentication → Emails → SMTP Settings*: use the same mail provider as
+     the store's own emails. See [5. Email](#5-email-brevo-smtp), step 5.
+     Supabase's built-in mailer allows only a few e-mails an hour, so password
+     resets stop working under real traffic without it.
    - *Authentication → Passwords*: turn on "Prevent use of leaked passwords"
      (a Pro-plan feature) and pick a minimum length.
    - *Database → Backups*: daily backups (or point-in-time recovery) before
@@ -211,6 +203,7 @@ Add these environment variables to **Production and Preview**:
 | `NEXT_PUBLIC_SUPABASE_URL` | required | Supabase → Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | required | the **anon / publishable** key — never the service-role/secret key |
 | `NEXT_PUBLIC_SITE_URL` | recommended | the public address, e.g. `https://www.your-shop.com`, no trailing slash (canonical links, sitemap, share previews). If unset, Vercel's production domain is used |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `SHOP_NOTIFY_EMAIL`, `EMAIL_DISPATCH_SECRET` | recommended | the store's emails — see [5. Email](#5-email-brevo-smtp). Without them the shop works, but no email is sent |
 | `SUPABASE_SERVICE_ROLE_KEY` | **do not set** | The site never uses it; only the seed scripts and the test suite do. The server prints a warning at start-up if it is present |
 
 The server checks its configuration when it starts. In production it refuses to
@@ -240,6 +233,96 @@ npm run smoke -- https://www.your-shop.com
 and the canonical links use the real address (not localhost), and — with only
 the public key — that a visitor cannot read orders, customers, addresses,
 carts or hidden products. Then submit `/sitemap.xml` in Google Search Console.
+
+### 5. Email (Brevo SMTP)
+
+The store sends four emails:
+
+| Email | To | When |
+| --- | --- | --- |
+| Order confirmation | the customer, in their language | right after they order |
+| Order update | the customer, in their language | the admin moves the order to Confirmed, Shipped, Delivered or Cancelled |
+| New-order alert | you (`SHOP_NOTIFY_EMAIL`), in English | every new order; replying writes to the customer |
+| Contact form | you, in English | a visitor sends the form on the Contact page; replying writes to them |
+
+**How it works.** The database queues every email itself (migration `0019`).
+Right after an order, a status change or a contact message, the browser asks
+`/api/email/dispatch` to send what is queued; the server sends it over SMTP.
+A failed send stays queued and is retried by the next dispatch, up to 5 times.
+Anything still unsent after 3 days is dropped, so switching email on later
+doesn't send old confirmations. Test addresses (`@example.com` and similar)
+are never mailed. The site still needs no service-role key: the server reads
+the queue with a secret of its own (`EMAIL_DISPATCH_SECRET`).
+
+1. **Brevo account.** Sign up at brevo.com (free: 300 emails a day).
+2. **Sender.** In Brevo, go to *Senders, Domains & Dedicated IPs*.
+   - *Domains*: add your shop's domain and add the DNS records Brevo shows
+     (DKIM, and DMARC if asked) at your domain registrar. Emails from a
+     verified domain land in the inbox, not in spam.
+   - *Senders*: add the address you will send from, e.g. `orders@your-shop.com`.
+   - Without your own domain you can verify a single address instead (Brevo
+     emails it a link), but delivery is less reliable.
+3. **SMTP key.** *SMTP & API → SMTP* → **Generate a new SMTP key**. That page
+   also shows the server (`smtp-relay.brevo.com`), the port (`587`) and your
+   **login** (something like `8a1b2c001@smtp-brevo.com`; it is not your
+   account email).
+4. **The server's settings.** Add these to `.env` (local) and to Vercel
+   (Production and Preview), then redeploy:
+
+   | Variable | Value |
+   | --- | --- |
+   | `SMTP_HOST` | `smtp-relay.brevo.com` |
+   | `SMTP_PORT` | `587` |
+   | `SMTP_USER` | the SMTP **login** from step 3 |
+   | `SMTP_PASS` | the SMTP **key** from step 3 |
+   | `EMAIL_FROM` | `Evael Store <orders@your-shop.com>` (a sender verified in step 2) |
+   | `SHOP_NOTIFY_EMAIL` | where new-order alerts and contact messages go, e.g. your Gmail |
+   | `EMAIL_DISPATCH_SECRET` | a long random value (below) |
+
+   Generate the secret once:
+
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+
+   Then give the database the same value: Supabase → *SQL Editor*, run
+
+   ```sql
+   select public.set_email_dispatch_secret('PASTE-THE-SAME-VALUE-HERE');
+   ```
+
+   To change it later, run the same line with a new value and update the
+   variable. `select public.set_email_dispatch_secret(null);` switches sending
+   off completely.
+5. **Account emails (password reset, sign-up)** are sent by Supabase itself,
+   so they need the same details: *Authentication → Emails → SMTP Settings* →
+   **Enable custom SMTP**:
+   - Sender email: your verified sender (`orders@your-shop.com`). Sender
+     name: `Evael Store`.
+   - Host `smtp-relay.brevo.com`, port `587`, username = the SMTP login, and
+     password = the SMTP key.
+   - Save, then under *Authentication → Rate Limits* raise "emails sent per
+     hour" (Supabase keeps it very low until custom SMTP is on).
+   - Under *Emails → Templates → Reset Password*, set the link to
+     `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
+     so that a reset link also works when it is opened on another device.
+   - Sign-up currently signs the customer in at once (*Sign In / Providers →
+     Email → Confirm email* is off). If you turn it on, customers must click
+     the mailed link and then sign in.
+6. **Test.** Send the Contact form with your own address. Place a test order
+   with a real email address, and move it to Shipped in the admin. Use
+   "Forgot password" once. Check the spam folder the first time, and Brevo's
+   *Transactional → Logs* if something doesn't arrive.
+7. **Optional safety net.** Queued emails normally go out within seconds. If
+   a send fails, it waits for the next order or message. To retry sooner,
+   have any free uptime/cron service (cron-job.org, UptimeRobot…) send
+   `POST https://www.your-shop.com/api/email/dispatch` every 5–10 minutes.
+   Anyone may call it: it only sends what is already queued.
+
+**What's in the queue** (SQL Editor): `select kind, state, attempts, last_error,
+created_at from email_outbox order by created_at desc limit 20;` A wrong
+password or sender shows up in `last_error`. Contact messages are also kept in
+the `contact_messages` table.
 
 ### Security
 

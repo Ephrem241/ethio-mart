@@ -165,3 +165,24 @@ export const info: Dictionary["info"] = {
       "እነዚህን ውሎች ልናሻሽል እንችላለን፤ ከላይ ያለው ቀን የቅርብ ጊዜውን ስሪት ያሳያል። እነዚህ ውሎች በኢትዮጵያ ሕግ ይገዛሉ።",
   },
 }
+
+export const contactForm: Dictionary["contactForm"] = {
+  title: "መልእክት ይላኩልን",
+  intro: "በሚሰጡን የኢሜይል አድራሻ እንመልስልዎታለን።",
+  name: "ስምዎ",
+  email: "ኢሜይልዎ",
+  subject: "ርዕስ (አማራጭ)",
+  message: "መልእክት",
+  send: "መልእክት ላክ",
+  sending: "በመላክ ላይ…",
+  sentTitle: "መልእክቱ ተልኳል",
+  sent: "እናመሰግናለን {name}። መልእክትዎ ደርሶናል፤ በኢሜይል እንመልስልዎታለን።",
+  sendAnother: "ሌላ መልእክት ላክ",
+  honeypot: "ይህን ባዶ ይተዉት",
+  errors: {
+    name: "እባክዎ ስምዎን ያስገቡ።",
+    subjectTooLong: "ርዕሱ በጣም ረጅም ነው።",
+    messageLength: "መልእክትዎ ከ10 እስከ 3000 ቁምፊዎች መሆን አለበት።",
+    tooMany: "በጣም ብዙ መልእክቶች ተልከዋል። እባክዎ ቆይተው እንደገና ይሞክሩ።",
+  },
+}

@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client"
 import { translateDbError } from "@/lib/i18n/db-errors"
 import { translate } from "@/lib/i18n/translate"
 import { ORDER_STATUSES } from "@/lib/order-status"
+import { requestEmailDispatch } from "@/lib/services/email-ping"
 import type { OrderItemRecord, OrderRecord, OrderStatus } from "@/lib/types/orders"
 
 // Real order reads and status changes against Postgres. Who can see what is
@@ -89,5 +90,8 @@ export async function updateOrderStatus(
   if (!data || data.length === 0) {
     return { success: false, error: translate("order.errors.notFoundOrDenied") }
   }
+  // The database queued the customer's status email (confirmed, shipped,
+  // delivered, cancelled; migration 0019); send it now.
+  requestEmailDispatch()
   return { success: true, order: toOrderRecord(data[0] as OrderRow) }
 }

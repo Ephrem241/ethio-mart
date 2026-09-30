@@ -8,7 +8,8 @@ import { order } from "./order"
 import { auth } from "./auth"
 import { account } from "./account"
 import { admin } from "./admin"
-import { info } from "./info"
+import { info, contactForm } from "./info"
+import { email } from "./email"
 
 // The English dictionary is the source of truth: its shape defines the
 // `Dictionary` type, and ../am must provide every key (a missing translation
@@ -32,6 +33,8 @@ export const en = {
   account,
   admin,
   info,
+  contactForm,
+  email,
 }
 
 export type Dictionary = typeof en

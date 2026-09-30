@@ -8,6 +8,7 @@ import { fetchProductsByIds } from "@/lib/services/catalog-client"
 import { getDeliveryFee } from "@/lib/services/delivery"
 import { getPaymentProvider } from "@/lib/services/payment"
 import { toOrderRecord } from "@/lib/services/orders"
+import { requestEmailDispatch } from "@/lib/services/email-ping"
 import type { OrderDeliveryAddress, OrderRecord, PaymentMethodId } from "@/lib/types/orders"
 
 export interface PlaceOrderInput {
@@ -108,5 +109,8 @@ async function submitOrder(input: PlaceOrderInput): Promise<PlaceOrderResult> {
   const order = toOrderRecord({ ...orderRow, order_items: itemRows } as Parameters<typeof toOrderRecord>[0])
 
   useCartStore.getState().clearCart()
+  // The confirmation (and the owner's alert) were queued by the database with
+  // the order; this sends them now, in the shopper's language.
+  requestEmailDispatch({ orderId: orderRow.id, locale: getActiveLocale() })
   return { success: true, order }
 }
