@@ -6,7 +6,7 @@ import {
   getFlashDeals,
 } from "@/lib/services/catalog-queries"
 import { getHomepageSettings } from "@/lib/services/homepage-queries"
-import { fillDealTokens, localizeHomepage } from "@/lib/services/homepage"
+import { dealsCountdown, fillDealTokens, localizeHomepage } from "@/lib/services/homepage"
 import type { Metadata } from "next"
 
 import { getLocale, getT } from "@/lib/i18n/server"
@@ -19,8 +19,8 @@ import { MobileHomeCarousel } from "@/components/home/mobile-home-carousel"
 import { DealsSlide, LifestyleSlide } from "@/components/home/mobile-home-slides"
 import { CategorySection } from "@/components/home/category-section"
 import { FeaturedProducts } from "@/components/home/featured-products"
-import { DealsBanner } from "@/components/home/deals-banner"
 import { DealsRow } from "@/components/home/deals-row"
+import { DealPopup } from "@/components/home/deal-popup"
 import { NewArrivals } from "@/components/home/new-arrivals"
 import { TrustSection } from "@/components/home/trust-section"
 import { LifestyleBanner } from "@/components/home/lifestyle-banner"
@@ -43,11 +43,15 @@ export async function generateMetadata(): Promise<Metadata> {
 // deal. The hero is full-bleed: it breaks out of the layout's Container and
 // cancels this wrapper's top padding itself.
 //
+// The promotion (its copy and live countdown) is a popup that opens a few
+// seconds in, once per session, plus a small floating button to reopen it
+// (deal-popup.tsx); the page itself only lists the discounted products.
+//
 // Phones: the hero, special-deals and lifestyle banners become one swipeable
-// carousel at the top instead of three sections spread down the page — same
-// copy, pictures and links, presented the way a shopping app would (the two
-// promo banners as full-slide versions, see mobile-home-slides.tsx). Desktop
-// keeps them exactly where they are today (the `hidden lg:block` wrappers).
+// carousel at the top instead of sections spread down the page — same copy,
+// pictures and links, presented the way a shopping app would (the two promo
+// banners as full-slide versions, see mobile-home-slides.tsx). Desktop keeps
+// the hero and lifestyle banner in place (the `hidden lg:block` wrappers).
 export default async function Home() {
   const [locale, categories, featured, newArrivals, deals, flashDeals, rawSettings] = await Promise.all([
     getLocale(),
@@ -60,7 +64,7 @@ export default async function Home() {
   ])
   const settings = localizeHomepage(rawSettings, locale)
   const t = await getT()
-  // No discounted product, no deals banner: it would have nothing to point at.
+  // No discounted product, no deals banner or popup: they would have nothing to point at.
   const dealSettings = deals.count > 0 ? fillDealTokens(settings, deals.maxDiscountPercent) : null
 
   return (
@@ -68,6 +72,21 @@ export default async function Home() {
     // from `sm` up the spacing is as it was.
     <div className="space-y-8 py-6 sm:space-y-16 lg:space-y-20 lg:py-10">
       <JsonLd nodes={[organizationJsonLd(t("meta.description")), websiteJsonLd(locale)]} />
+
+      {/* Takes no room in the flow (a portal plus a fixed floating button).
+          Kept near the top on purpose: `space-y-*` spaces every child but the
+          last, so a button appearing at the end would move the page. */}
+      {dealSettings && (
+        <DealPopup
+          eyebrow={dealSettings.promoEyebrow}
+          headline={dealSettings.promoHeadline}
+          subtext={dealSettings.promoSubtext}
+          ctaLabel={dealSettings.promoCtaLabel}
+          ctaHref={dealSettings.promoCtaHref}
+          percent={deals.maxDiscountPercent}
+          {...dealsCountdown(dealSettings)}
+        />
+      )}
 
       {/* The page's one real <h1>, kept separate from the two Hero renders
           below (mobile carousel + desktop): each of those now draws the same
@@ -94,11 +113,6 @@ export default async function Home() {
       <CategorySection categories={categories} />
       <FeaturedProducts products={featured} />
       <DealsRow products={flashDeals} />
-      {dealSettings && (
-        <div className="hidden lg:block">
-          <DealsBanner settings={dealSettings} />
-        </div>
-      )}
       <NewArrivals products={newArrivals} />
       <TrustSection />
       <div className="hidden lg:block">

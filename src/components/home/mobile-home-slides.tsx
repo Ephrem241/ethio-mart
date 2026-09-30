@@ -9,13 +9,11 @@ import { Container } from "@/components/layout/container"
 import { DealsCountdown } from "@/components/home/deals-countdown"
 
 // The phone carousel's second and third slides: the Special Deals and
-// lifestyle banners — the same words, pictures and links as the desktop
-// sections (deals-banner.tsx, lifestyle-banner.tsx), shaped like the hero
-// slide beside them. Each fills its slide: the photograph on top, taking
-// whatever height the words leave, and the words below it on a solid colour,
-// so their contrast never depends on the picture. (The desktop cards stack
-// words, photo and countdown, which made the deals slide about twice the
-// hero's height and left a blank band under the shorter slides.)
+// lifestyle banners — the same words, pictures and links as the deal popup
+// (deal-popup.tsx) and the desktop lifestyle section (lifestyle-banner.tsx),
+// shaped like the hero slide beside them. Each fills its slide: the photograph
+// on top, taking whatever height the words leave, and the words below it on a
+// solid colour, so their contrast never depends on the picture.
 
 async function DealsSlide({ settings }: { settings: HomepageSettings }) {
   const t = await getT()
@@ -39,7 +37,7 @@ async function DealsSlide({ settings }: { settings: HomepageSettings }) {
           className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-forest to-transparent"
         />
         <Container className="absolute inset-x-0 top-4">
-          <DealsCountdown {...dealsCountdown(settings)} variant="pill" />
+          <DealsCountdown {...dealsCountdown(settings)} />
         </Container>
       </div>
       <Container className="pb-5">

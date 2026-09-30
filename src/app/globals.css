@@ -19,6 +19,7 @@
     --color-sand: var(--color-sand);
     --color-gold: var(--color-gold);
     --color-gold-deep: var(--color-gold-deep);
+    --color-copper: var(--color-copper);
     --color-charcoal: var(--color-charcoal);
     --color-muted-text: var(--color-muted-text);
     --color-success: var(--color-success);
@@ -82,6 +83,7 @@
     --color-sand: #E3D2BD;
     --color-gold: #C9A15B;
     --color-gold-deep: #8A6A2F; /* gold for small text on light surfaces (the logo's "STORE"): 4.7:1 on ivory */
+    --color-copper: #D4894A; /* the deal popup's warm button: forest-dark text on it is 5.5:1 */
     --color-charcoal: #171717;
     --color-muted-text: #6B665F; /* 4.85:1 on the darkest surface it sits on (WCAG AA) */
     --color-success: #267A55;

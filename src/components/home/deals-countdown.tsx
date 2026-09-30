@@ -13,28 +13,13 @@ const DAY = 24 * HOUR
 // A live countdown to a fixed moment, so it can't restart when the page reloads:
 // either the admin's end date (homepage_sections.promo.ends_at) or, for
 // "today's" deals, midnight in Addis Ababa. With `rolling`, reaching midnight
-// moves on to the next one instead of showing "ended".
+// moves on to the next one instead of ending; without it the clock stops at 0.
 //
 // `initialRemainingMs` is computed on the server and used for the first render,
 // so the server HTML and the browser's first paint agree (no hydration
 // mismatch); right after mounting, the browser switches to its own clock and
-// ticks once a second.
-//
-// "boxes" is the desktop banner's card of four tiles; "pill" is one short line
-// ("Deal ends in 05:12:33") for the phone carousel's slide, where the card
-// would cover most of the photograph.
-function DealsCountdown({
-  endsAt,
-  initialRemainingMs,
-  rolling = false,
-  variant = "boxes",
-}: {
-  endsAt: string
-  initialRemainingMs: number
-  rolling?: boolean
-  variant?: "boxes" | "pill"
-}) {
-  const t = useT()
+// ticks once a second. Shared by the phone carousel's pill and the deal popup.
+function useDealCountdown(endsAt: string, initialRemainingMs: number, rolling: boolean): number {
   const [remaining, setRemaining] = useState(initialRemainingMs)
 
   useEffect(() => {
@@ -42,68 +27,67 @@ function DealsCountdown({
     const tick = () => {
       const now = Date.now()
       if (rolling && end <= now) end = Date.parse(endOfDayInAddis(now))
-      setRemaining(Math.max(0, end - now))
+      const left = Math.max(0, end - now)
+      setRemaining(left)
+      // A fixed end date that has passed stays passed: stop ticking.
+      if (left === 0) clearInterval(timer)
     }
-    tick()
     const timer = setInterval(tick, SECOND)
+    tick()
     return () => clearInterval(timer)
   }, [endsAt, rolling])
 
+  return remaining
+}
+
+/** Splits milliseconds into whole days, hours, minutes and seconds. */
+function countdownParts(remaining: number) {
+  return {
+    days: Math.floor(remaining / DAY),
+    hours: Math.floor((remaining % DAY) / HOUR),
+    minutes: Math.floor((remaining % HOUR) / MINUTE),
+    seconds: Math.floor((remaining % MINUTE) / SECOND),
+  }
+}
+
+// One short line ("Deal ends in 05:12:33") for the phone carousel's deals
+// slide, where a card of tiles would cover most of the photograph.
+function DealsCountdown({
+  endsAt,
+  initialRemainingMs,
+  rolling = false,
+}: {
+  endsAt: string
+  initialRemainingMs: number
+  rolling?: boolean
+}) {
+  const t = useT()
+  const remaining = useDealCountdown(endsAt, initialRemainingMs, rolling)
+
   if (remaining <= 0) {
     return (
-      <p
-        className={
-          variant === "pill"
-            ? "w-fit rounded-full bg-white/95 px-3.5 py-1.5 text-sm font-medium text-charcoal shadow-lift"
-            : "rounded-2xl bg-white/95 px-5 py-4 text-sm font-medium text-charcoal shadow-lift"
-        }
-      >
+      <p className="w-fit rounded-full bg-white/95 px-3.5 py-1.5 text-sm font-medium text-charcoal shadow-lift">
         {t("home.deals.ended")}
       </p>
     )
   }
 
-  const parts = [
-    { value: Math.floor(remaining / DAY), label: t("home.deals.days") },
-    { value: Math.floor((remaining % DAY) / HOUR), label: t("home.deals.hours") },
-    { value: Math.floor((remaining % HOUR) / MINUTE), label: t("home.deals.minutes") },
-    { value: Math.floor((remaining % MINUTE) / SECOND), label: t("home.deals.seconds") },
-  ]
-
-  if (variant === "pill") {
-    const [days, ...clock] = parts
-    return (
-      <div
-        role="timer"
-        aria-label={t("home.deals.timeLeft")}
-        className="flex w-fit items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-sm shadow-lift"
-      >
-        <span className="font-medium text-muted-text">{t("home.deals.endsIn")}</span>
-        <span className="font-semibold text-charcoal tabular-nums">
-          {days.value > 0 && `${days.value} ${days.label} `}
-          {clock.map((part) => String(part.value).padStart(2, "0")).join(":")}
-        </span>
-      </div>
-    )
-  }
-
+  const { days, hours, minutes, seconds } = countdownParts(remaining)
   return (
     // role="timer" is not announced on every tick (its live region is off by
     // default), which is what we want; the label says what it counts.
-    <div role="timer" aria-label={t("home.deals.timeLeft")} className="rounded-2xl bg-white/95 p-4 shadow-lift">
-      <p className="text-xs font-medium text-muted-text">{t("home.deals.endsIn")}</p>
-      <div className="mt-2.5 flex gap-2">
-        {parts.map((part) => (
-          <div key={part.label} className="flex w-[3.75rem] flex-col items-center gap-1">
-            <span className="flex h-12 w-full items-center justify-center rounded-xl bg-cream text-xl font-semibold text-charcoal tabular-nums">
-              {String(part.value).padStart(2, "0")}
-            </span>
-            <span className="text-[10px] leading-none text-muted-text">{part.label}</span>
-          </div>
-        ))}
-      </div>
+    <div
+      role="timer"
+      aria-label={t("home.deals.timeLeft")}
+      className="flex w-fit items-center gap-2 rounded-full bg-white/95 px-3.5 py-1.5 text-sm shadow-lift"
+    >
+      <span className="font-medium text-muted-text">{t("home.deals.endsIn")}</span>
+      <span className="font-semibold text-charcoal tabular-nums">
+        {days > 0 && `${days} ${t("home.deals.days")} `}
+        {[hours, minutes, seconds].map((part) => String(part).padStart(2, "0")).join(":")}
+      </span>
     </div>
   )
 }
 
-export { DealsCountdown }
+export { DealsCountdown, useDealCountdown, countdownParts }

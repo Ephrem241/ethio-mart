@@ -1,4 +1,6 @@
-import { test as base, expect } from "@playwright/test"
+import { test as base, expect, type Browser, type BrowserContext } from "@playwright/test"
+
+import { DEAL_POPUP_SESSION_KEY } from "@/lib/deal-popup"
 
 import { createTestUser, deleteTestUser, findTestUserByEmail, stockedProducts, testEmail, testPassword, type CatalogProduct, type TestUser } from "./db"
 import { watchProblems, type Problems } from "./ui"
@@ -20,7 +22,40 @@ interface Fixtures {
   problems: Problems
 }
 
-export const test = base.extend<Fixtures>({
+// The homepage's deal popup opens by itself a few seconds after load, as a
+// modal (the rest of the page is hidden from the accessibility tree while it
+// is open). Specs that are about something else must not race it, so every
+// browser context starts with it marked as "already shown this session" —
+// including contexts a spec opens itself with browser.newContext(). A context
+// that sets localStorage["e2e-deal-popup"] = "live" (deal-popup.spec.ts) gets
+// the real behaviour.
+export const LIVE_DEAL_POPUP_FLAG = "e2e-deal-popup"
+
+async function quietDealPopup(context: BrowserContext) {
+  await context.addInitScript(
+    ([key, flag]) => {
+      try {
+        if (window.localStorage.getItem(flag) !== "live") window.sessionStorage.setItem(key, "1")
+      } catch {}
+    },
+    [DEAL_POPUP_SESSION_KEY, LIVE_DEAL_POPUP_FLAG] as const
+  )
+}
+
+export const test = base.extend<Fixtures, { browser: Browser }>({
+  browser: [
+    async ({ browser }, provide) => {
+      const newContext = browser.newContext.bind(browser)
+      browser.newContext = async (...args) => {
+        const context = await newContext(...args)
+        await quietDealPopup(context)
+        return context
+      }
+      await provide(browser)
+      browser.newContext = newContext
+    },
+    { scope: "worker" },
+  ],
   // Playwright requires a destructured first argument, even an empty one.
   shopper: async ({}, provide) => {
     const user = await createTestUser({ tag: "shopper" })

@@ -171,9 +171,9 @@ export const admin = {
     // {token} is filled with the literal placeholder text the admin types
     // ("{maxDiscount}"), shown as a code chip; the storefront replaces the
     // placeholder with the biggest discount currently on sale.
-    promoHint: "Tip: write {token} in a headline or subtext and the storefront replaces it with the biggest discount currently on sale. The banner is hidden while nothing is on sale.",
+    promoHint: "Tip: write {token} in a headline or subtext and the storefront replaces it with the biggest discount currently on sale. The banner and the deal popup are hidden while nothing is on sale.",
     endsAt: "Offer ends (optional)",
-    endsAtHint: "While this moment is in the future, the banner shows a live countdown to it. Leave it empty for no countdown.",
+    endsAtHint: "While this moment is in the future, the banner and the deal popup count down to it live. Leave it empty to count down to midnight (Addis Ababa time) every day.",
     save: "Save changes",
     saved: "Homepage updated.",
     noPermission: "You don't have permission to edit the homepage.",

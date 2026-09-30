@@ -28,6 +28,15 @@ export const home = {
     timeLeft: "Time left on this offer",
     ended: "This offer has ended",
   },
+  // The deal popup and its floating reopen button (deal-popup.tsx); the
+  // popup's headline, text and button are the same admin copy as above.
+  dealPopup: {
+    notNow: "Not now",
+    endedText: "New deals are added regularly. Check back soon.",
+    // {percent} is the biggest discount currently on sale.
+    badge: "{percent}% OFF",
+    badgeLabel: "{percent}% OFF: show today's deal",
+  },
   // Kept for /shop?sale=1, which introduces the discounted products.
   flashTitle: "Flash deals",
   flashSubtitle: "Limited-time offers on selected products.",
