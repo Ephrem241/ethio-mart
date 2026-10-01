@@ -8,7 +8,8 @@ import { setLanguage, signIn } from "./support/ui"
 // /api/email/dispatch sends what is queued. These tests check the queuing and
 // the contact form against the real database. They never send mail: every
 // address here is an e2e-…@example.com one, which the sender refuses to mail
-// even when SMTP is configured, and the test server normally has no SMTP.
+// even when email is configured, and the test server normally has no email
+// settings.
 
 const outboxFor = async (column: "order_id" | "contact_id", id: string) =>
   (await admin().from("email_outbox").select("kind, status, locale, state").eq(column, id).order("created_at")).data ?? []
@@ -100,7 +101,7 @@ test.describe("Email", () => {
       })
       return response.status
     }, order.id)
-    // 503 = this server has no SMTP settings (emails stay queued); 202 = it has.
+    // 503 = this server has no email settings (emails stay queued); 202 = it has.
     expect([202, 503]).toContain(status)
     await expect.poll(async () => (await admin().from("orders").select("locale").eq("id", order.id).single()).data?.locale).toBe("am")
     const queued = await outboxFor("order_id", order.id)

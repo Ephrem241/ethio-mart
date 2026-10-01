@@ -18,10 +18,7 @@ const good = {
 
 function email() {
   return {
-    SMTP_HOST: "smtp-relay.example.com",
-    SMTP_PORT: "587",
-    SMTP_USER: "shop@example.com",
-    SMTP_PASS: "not-a-real-password",
+    RESEND_API_KEY: ["re", "notarealkey123"].join("_"),
     EMAIL_FROM: "Evael Store <orders@example.com>",
     SHOP_NOTIFY_EMAIL: "owner@example.com",
     EMAIL_DISPATCH_SECRET: "x".repeat(40),
@@ -113,16 +110,16 @@ describe("checkEnvironment", () => {
   })
 
   it("email: all settings or a warning, never a public one", () => {
-    const { SMTP_PASS: _dropped, ...partial } = good
+    const { RESEND_API_KEY: _dropped, ...partial } = good
     void _dropped
     const partly = checkEnvironment(partial, { production: true }).warnings
-    expect(partly.some((w) => w.includes("partly configured") && w.includes("SMTP_PASS"))).toBe(true)
+    expect(partly.some((w) => w.includes("partly configured") && w.includes("RESEND_API_KEY"))).toBe(true)
 
     const none = Object.fromEntries(Object.entries(good).filter(([name]) => !(name in email())))
     expect(checkEnvironment(none, { production: true }).warnings.some((w) => w.includes("Email is not configured"))).toBe(true)
     expect(checkEnvironment(none, { production: false }).warnings).toEqual([])
 
-    expect(checkEnvironment({ ...good, SMTP_PORT: "smtp" }, { production: true }).warnings.some((w) => w.includes("SMTP_PORT"))).toBe(true)
-    expect(checkEnvironment({ ...good, NEXT_PUBLIC_SMTP_PASS: "hunter2" }, { production: false }).errors.some((w) => w.includes("NEXT_PUBLIC_SMTP_PASS"))).toBe(true)
+    expect(checkEnvironment({ ...good, RESEND_API_KEY: "smtp-password" }, { production: true }).warnings.some((w) => w.includes("starts with re_"))).toBe(true)
+    expect(checkEnvironment({ ...good, NEXT_PUBLIC_RESEND_API_KEY: "anything" }, { production: false }).errors.some((w) => w.includes("NEXT_PUBLIC_RESEND_API_KEY"))).toBe(true)
   })
 })

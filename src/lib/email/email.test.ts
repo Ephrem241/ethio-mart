@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 
 import { readEmailConfig } from "@/lib/email/config"
 import { dispatchEmails, isUndeliverable, type Mailer, type OutgoingMessage, type Outbox } from "@/lib/email/dispatch"
+import { createResendMailer } from "@/lib/email/resend"
 import { escapeHtml, renderEmail } from "@/lib/email/templates"
 import type { OutboxOrder, OutboxRow } from "@/lib/email/types"
 import { contactSchema } from "@/components/contact/contact-schema"
@@ -160,26 +161,91 @@ describe("email dispatch", () => {
 })
 
 describe("email settings", () => {
+  const key = ["re", "notarealkey123"].join("_")
   const full = {
-    SMTP_HOST: "smtp-relay.brevo.com",
-    SMTP_PORT: "587",
-    SMTP_USER: "login@smtp-brevo.com",
-    SMTP_PASS: "not-a-real-key",
+    RESEND_API_KEY: key,
     EMAIL_FROM: "Evael Store <orders@evaelstore.et>",
     SHOP_NOTIFY_EMAIL: "owner@evaelstore.et",
     EMAIL_DISPATCH_SECRET: "y".repeat(48),
   }
 
-  it("reads a complete configuration (587 = STARTTLS, 465 = TLS)", () => {
-    expect(readEmailConfig(full).config?.smtp).toEqual({ host: "smtp-relay.brevo.com", port: 587, secure: false, user: "login@smtp-brevo.com", pass: "not-a-real-key" })
-    expect(readEmailConfig({ ...full, SMTP_PORT: "465" }).config?.smtp.secure).toBe(true)
+  it("reads a complete configuration", () => {
+    expect(readEmailConfig(full).config).toEqual({
+      resendApiKey: key,
+      from: "Evael Store <orders@evaelstore.et>",
+      shopEmail: "owner@evaelstore.et",
+      dispatchSecret: "y".repeat(48),
+    })
   })
 
   it("is off, naming what is missing, when anything is missing or wrong", () => {
-    expect(readEmailConfig({}).missing).toHaveLength(7)
-    expect(readEmailConfig({ ...full, SMTP_PASS: " " })).toEqual({ config: null, missing: ["SMTP_PASS"] })
+    expect(readEmailConfig({}).missing).toHaveLength(4)
+    expect(readEmailConfig({ ...full, RESEND_API_KEY: " " })).toEqual({ config: null, missing: ["RESEND_API_KEY"] })
+    expect(readEmailConfig({ ...full, RESEND_API_KEY: "an-smtp-password" }).missing[0]).toContain("starts with re_")
     expect(readEmailConfig({ ...full, EMAIL_DISPATCH_SECRET: "short" }).missing[0]).toContain("EMAIL_DISPATCH_SECRET")
-    expect(readEmailConfig({ ...full, SMTP_PORT: "70000" }).config).toBeNull()
+  })
+})
+
+describe("Resend mailer", () => {
+  const message = {
+    from: "Evael Store <orders@evaelstore.et>",
+    to: "owner@evaelstore.et",
+    replyTo: "sara@mail.et",
+    subject: "Contact form: hi",
+    html: "<p>hi</p>",
+    text: "hi",
+    idempotencyKey: "email-outbox-r1",
+  }
+
+  function fakeFetch(response: { status: number; body?: unknown }) {
+    const calls: { url: string; init: RequestInit }[] = []
+    const impl = (async (url: string, init: RequestInit) => {
+      calls.push({ url, init })
+      return new Response(response.body === undefined ? null : JSON.stringify(response.body), { status: response.status })
+    }) as unknown as typeof fetch
+    return { impl, calls }
+  }
+
+  it("posts the email to Resend with the key, the reply-to and an idempotency key", async () => {
+    const f = fakeFetch({ status: 200, body: { id: "49a3999c" } })
+    await createResendMailer("re_test", f.impl).send(message)
+    expect(f.calls).toHaveLength(1)
+    const { url, init } = f.calls[0]
+    expect(url).toBe("https://api.resend.com/emails")
+    expect(init.method).toBe("POST")
+    expect(init.headers).toMatchObject({ Authorization: "Bearer re_test", "Content-Type": "application/json", "Idempotency-Key": "email-outbox-r1" })
+    expect(JSON.parse(String(init.body))).toEqual({
+      from: message.from,
+      to: ["owner@evaelstore.et"],
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      reply_to: "sara@mail.et",
+    })
+  })
+
+  it("leaves reply_to out when there is none", async () => {
+    const f = fakeFetch({ status: 200, body: { id: "x" } })
+    await createResendMailer("re_test", f.impl).send({ ...message, replyTo: undefined })
+    expect(JSON.parse(String(f.calls[0].init.body))).not.toHaveProperty("reply_to")
+  })
+
+  it("throws Resend's own explanation on failure, so it is recorded and retried", async () => {
+    const forbidden = fakeFetch({ status: 403, body: { statusCode: 403, name: "validation_error", message: "The evaelstore.et domain is not verified." } })
+    await expect(createResendMailer("re_test", forbidden.impl).send(message)).rejects.toThrow(
+      "Resend 403 validation_error: The evaelstore.et domain is not verified."
+    )
+    const busy = fakeFetch({ status: 429 })
+    await expect(createResendMailer("re_test", busy.impl).send(message)).rejects.toThrow("Resend 429")
+  })
+
+  it("the dispatcher gives every attempt at one queued email the same idempotency key", async () => {
+    const sent: string[] = []
+    const mailer = { async send(m: OutgoingMessage) { sent.push(m.idempotencyKey!) } }
+    const rows = [row({ id: "abc" })]
+    const outbox: Outbox = { claim: async () => rows.splice(0), complete: async () => {} }
+    await dispatchEmails({ mailer, outbox, from: "x@evaelstore.et", context: ctx })
+    expect(sent).toEqual(["email-outbox-abc"])
   })
 })
 

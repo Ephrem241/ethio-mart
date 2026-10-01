@@ -49,7 +49,7 @@ export function checkEnvironment(env: Env, { production }: { production: boolean
   const serviceKey = env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   for (const [name, value] of Object.entries(env)) {
     if (!name.startsWith("NEXT_PUBLIC_") || !isSet(value)) continue // i18n-ignore: an environment variable name
-    if (/SERVICE|SECRET|PRIVATE|PASS|SMTP/i.test(name)) {
+    if (/SERVICE|SECRET|PRIVATE|PASS|SMTP|RESEND|API_KEY/i.test(name)) {
       errors.push(`${name} would be published to every browser: variables starting NEXT_PUBLIC_ must never hold a secret. Rename it (without the prefix).`)
     } else if (isSet(serviceKey) && value.trim() === serviceKey && name !== "NEXT_PUBLIC_SUPABASE_ANON_KEY") {
       errors.push(`${name} has the same value as SUPABASE_SERVICE_ROLE_KEY and would be published to every browser.`)
@@ -77,7 +77,7 @@ export function checkEnvironment(env: Env, { production }: { production: boolean
     if (!email.config && anyEmail) {
       warnings.push(`Email is only partly configured, so nothing is sent (missing or invalid: ${email.missing.join(", ")}).`)
     } else if (!email.config) {
-      warnings.push("Email is not configured (SMTP_HOST and the rest, see README \"Email\"): order emails and contact-form messages are queued but not sent.")
+      warnings.push("Email is not configured (RESEND_API_KEY and the rest, see README \"Email\"): order emails and contact-form messages are queued but not sent.")
     }
   }
 

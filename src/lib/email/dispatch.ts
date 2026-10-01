@@ -3,12 +3,15 @@ import type { OutboxRow, RenderedEmail } from "@/lib/email/types"
 
 // Sends what is queued in the database's email outbox (migration 0019):
 // claim a batch, write and send each email, settle each one. The mailer and
-// the outbox are passed in (SMTP and Supabase in production, fakes in tests).
+// the outbox are passed in (Resend and Supabase in production, fakes in tests).
 // A failed send is recorded and the email goes back in the queue, so the next
 // dispatch retries it (the database gives up after 5 attempts).
 
 export interface OutgoingMessage extends RenderedEmail {
   from: string
+  // The same for every attempt at one queued email, so the mail service can
+  // refuse to deliver it twice.
+  idempotencyKey?: string
 }
 
 export interface Mailer {
@@ -70,7 +73,7 @@ export async function dispatchEmails({
         continue
       }
       try {
-        await mailer.send({ ...email, from })
+        await mailer.send({ ...email, from, idempotencyKey: `email-outbox-${row.id}` })
         await outbox.complete(row.id, null)
         result.sent++
       } catch (error) {

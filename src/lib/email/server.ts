@@ -1,39 +1,14 @@
-import nodemailer from "nodemailer"
 import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 
 import { SITE_URL } from "@/lib/seo/site"
-import { readEmailConfig, type EmailConfig } from "@/lib/email/config"
-import { dispatchEmails, type DispatchResult, type Mailer, type Outbox } from "@/lib/email/dispatch"
+import { readEmailConfig } from "@/lib/email/config"
+import { dispatchEmails, type DispatchResult, type Outbox } from "@/lib/email/dispatch"
+import { createResendMailer } from "@/lib/email/resend"
 import type { OutboxRow } from "@/lib/email/types"
 
-// The real mailer (SMTP, e.g. Brevo) and the real outbox (the database, with
+// The real mailer (Resend's API) and the real outbox (the database, with
 // the public key: the dispatch secret, not a privileged key, is what lets this
 // server read the queue). Used only by the /api/email/dispatch route.
-
-function createSmtpMailer(config: EmailConfig): Mailer {
-  const transport = nodemailer.createTransport({
-    host: config.smtp.host,
-    port: config.smtp.port,
-    secure: config.smtp.secure,
-    auth: { user: config.smtp.user, pass: config.smtp.pass },
-    // Don't let one slow SMTP server hold the request open.
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 20_000,
-  })
-  return {
-    async send(message) {
-      await transport.sendMail({
-        from: message.from,
-        to: message.to,
-        replyTo: message.replyTo,
-        subject: message.subject,
-        html: message.html,
-        text: message.text,
-      })
-    },
-  }
-}
 
 function createDatabaseOutbox(secret: string): Outbox {
   const supabase = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
@@ -61,7 +36,7 @@ export async function dispatchQueuedEmails(): Promise<DispatchResult | null> {
   const { config } = readEmailConfig()
   if (!config) return null
   return dispatchEmails({
-    mailer: createSmtpMailer(config),
+    mailer: createResendMailer(config.resendApiKey),
     outbox: createDatabaseOutbox(config.dispatchSecret),
     from: config.from,
     context: { siteUrl: SITE_URL, shopEmail: config.shopEmail },
