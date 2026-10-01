@@ -1,4 +1,4 @@
-// Admin panel: navigation, dashboard, catalog, orders, customers, homepage.
+// Admin panel: navigation, dashboard, catalog, orders, customers, messages, homepage.
 export const admin = {
   nav: {
     label: "Admin",
@@ -7,6 +7,7 @@ export const admin = {
     categories: "Categories",
     orders: "Orders",
     customers: "Customers",
+    messages: "Messages",
     homepage: "Homepage",
   },
   loadFailed: {
@@ -15,6 +16,7 @@ export const admin = {
     categories: "We couldn't load categories. Please refresh the page.",
     orders: "We couldn't load orders. Please refresh the page.",
     customers: "We couldn't load your customers. Please refresh the page.",
+    messages: "We couldn't load your messages. Please refresh the page.",
     homepage: "We couldn't load the homepage settings. Please refresh the page.",
   },
   dashboard: {
@@ -149,6 +151,46 @@ export const admin = {
       orders: "Orders",
       totalSpent: "Total spent",
       joined: "Joined",
+    },
+  },
+  // Contact-form messages from customers, and the admin's email replies.
+  messages: {
+    title: "Messages",
+    subtitle: "What customers sent through the Contact page. Your replies are emailed to them.",
+    empty: "No messages yet.",
+    emptyUnread: "No unread messages.",
+    filterLabel: "Show",
+    filterAll: "All",
+    filterUnread: "Unread",
+    unreadCount: { one: "{count} unread", other: "{count} unread" },
+    unread: "Unread",
+    replied: "Replied",
+    noSubject: "(no subject)",
+    from: "From {name}",
+    received: "Received {date}",
+    language: "Wrote in {language}",
+    languageEn: "English",
+    languageAm: "Amharic",
+    backToMessages: "Back to messages",
+    notFound: "Message not found.",
+    theirMessage: "Their message",
+    replies: "Your replies",
+    repliedBy: "{name}, {date}",
+    reply: "Reply",
+    replyLabel: "Reply to {name}",
+    // {email} is the customer's address; {language} is English or Amharic.
+    replyHint: "Sent by email to {email}. Write it in {language}, the language they used. If they answer, their email reaches your shop inbox.",
+    send: "Send reply",
+    sending: "Sending...",
+    sent: "Reply sent to {email}.",
+    markUnread: "Mark as unread",
+    markedUnread: "Marked as unread.",
+    delete: "Delete message",
+    deleteTitle: "Delete this message?",
+    deleteText: "The message from {name} and your replies to it are removed for good.",
+    deleted: "Message deleted.",
+    errors: {
+      replyLength: "A reply must be between 1 and 5000 characters.",
     },
   },
   homepage: {

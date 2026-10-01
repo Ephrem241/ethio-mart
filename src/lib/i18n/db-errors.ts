@@ -39,6 +39,9 @@ const KNOWN: { pattern: RegExp; key: MessageKey; params?: (match: RegExpMatchArr
   { pattern: /^The subject is too long/i, key: "contactForm.errors.subjectTooLong" },
   { pattern: /^Your message must be between/i, key: "contactForm.errors.messageLength" },
   { pattern: /^Too many messages/i, key: "contactForm.errors.tooMany" },
+  { pattern: /^A reply must be between/i, key: "admin.messages.errors.replyLength" },
+  { pattern: /^Message not found/i, key: "admin.messages.notFound" },
+  { pattern: /^Not allowed\.?$/i, key: "errors.notAllowed" },
   // The request itself never arrived: offline, or the service is unreachable (each browser words it differently).
   { pattern: /fetch failed|failed to fetch|network ?error|network request failed|load failed/i, key: "errors.network" },
 ]

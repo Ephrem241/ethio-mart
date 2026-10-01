@@ -328,7 +328,9 @@ own account emails (password reset, sign-up) go through Resend too.
 **What's in the queue** (SQL Editor): `select kind, state, attempts, last_error,
 created_at from email_outbox order by created_at desc limit 20;` An invalid
 key or an unverified sender domain shows up in `last_error`. Contact messages are also kept in
-the `contact_messages` table.
+the `contact_messages` table, and admins read and answer them under **Admin → Messages**
+(migration 0020): a reply is emailed to the customer, in the language they wrote in, with
+`SHOP_NOTIFY_EMAIL` as Reply-To.
 
 ### Security
 

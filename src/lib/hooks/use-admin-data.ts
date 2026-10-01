@@ -4,6 +4,12 @@ import { useRemote, type Remote } from "@/lib/hooks/use-remote"
 import { fetchAdminCategories, fetchAdminProduct, fetchAdminProducts } from "@/lib/services/admin-catalog"
 import { fetchProfiles, type AdminProfile } from "@/lib/services/admin-customers"
 import { fetchHomepageSettings } from "@/lib/services/admin-homepage"
+import {
+  countUnreadMessages,
+  fetchContactMessage,
+  fetchContactMessages,
+  type ContactMessage,
+} from "@/lib/services/admin-messages"
 import type { HomepageSettings } from "@/lib/services/homepage"
 import type { Product } from "@/lib/data/products"
 import type { Category } from "@/lib/data/categories"
@@ -38,4 +44,21 @@ export function useHomepageSettings(): Remote<HomepageSettings> {
 
 export function useProfiles(): Remote<AdminProfile[]> {
   return useRemote("all", loadProfiles)
+}
+
+const loadMessages = () => fetchContactMessages()
+const loadMessage = (id: string) => fetchContactMessage(id)
+const loadUnreadCount = () => countUnreadMessages()
+
+export function useContactMessages(): Remote<ContactMessage[]> {
+  return useRemote("all", loadMessages)
+}
+
+// `data` is `null` when there is no such message.
+export function useContactMessage(id: string): Remote<ContactMessage | null> {
+  return useRemote(id, loadMessage)
+}
+
+export function useUnreadMessageCount(): Remote<number> {
+  return useRemote("unread", loadUnreadCount)
 }

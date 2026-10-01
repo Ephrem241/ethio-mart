@@ -37,6 +37,7 @@ interface AuditData {
   categorySlug: string
   productId: string
   orderId: string
+  messageId: string
 }
 
 const guest = (p: string | ((d: AuditData) => string), indexable = true, status = 200): Route => ({ path: typeof p === "string" ? () => p : p, role: "guest", indexable, status })
@@ -81,6 +82,8 @@ const ROUTES: Route[] = [
   adminRoute("/admin/orders"),
   adminRoute((d) => `/admin/orders/${d.orderId}`),
   adminRoute("/admin/customers"),
+  adminRoute("/admin/messages"),
+  adminRoute((d) => `/admin/messages/${d.messageId}`),
   adminRoute("/admin/homepage"),
 ]
 
@@ -88,6 +91,7 @@ const STATE_DIR = path.join(tmpdir(), "ethio-mart-e2e")
 
 let data: AuditData
 let users: Record<"customer" | "admin", TestUser>
+const AUDIT_CONTACT = "e2e-audit-contact@example.com"
 const stateFile = (role: "customer" | "admin") => path.join(STATE_DIR, `audit-${role}.json`)
 
 test.describe("Quality audit: every route at every size", () => {
@@ -102,7 +106,14 @@ test.describe("Quality audit: every route at every size", () => {
     await admin().from("cart_items").insert({ user_id: users.customer.id, product_id: first.id, quantity: 1 }) // something in the cart for /checkout
     await admin().from("addresses").insert({ user_id: users.customer.id, full_name: "E2E Buyer", phone: "0911223344", city: "Adama", sub_city: "K2", woreda: "05", address: "Behind the market", is_default: true })
     await admin().from("favorites").insert({ user_id: users.customer.id, product_id: first.id })
-    data = { productSlug: first.slug, categorySlug: category!.slug as string, productId: item.id, orderId: order.id }
+    // A contact message with one reply, for the admin's Messages pages.
+    const { data: message } = await admin()
+      .from("contact_messages")
+      .insert({ name: "E2E Audit Visitor", email: AUDIT_CONTACT, subject: "Delivery question", message: "Do you deliver to Hawassa?\nThank you." })
+      .select("id")
+      .single()
+    await admin().from("contact_replies").insert({ message_id: message!.id, body: "Yes, within 3 days." })
+    data = { productSlug: first.slug, categorySlug: category!.slug as string, productId: item.id, orderId: order.id, messageId: message!.id }
 
     for (const role of ["customer", "admin"] as const) {
       const context = await browser.newContext()
@@ -118,6 +129,7 @@ test.describe("Quality audit: every route at every size", () => {
   })
 
   test.afterAll(async () => {
+    await admin().from("contact_messages").delete().eq("email", AUDIT_CONTACT)
     for (const user of Object.values(users ?? {})) await deleteTestUser(user.id)
   })
 
@@ -134,7 +146,7 @@ test.describe("Quality audit: every route at every size", () => {
   for (const viewport of VIEWPORTS) {
     test.describe(`${viewport.name} (${viewport.width}px)`, () => {
       for (const route of ROUTES) {
-        test(`${route.role}: ${route.path({ productSlug: "…", categorySlug: "…", productId: "…", orderId: "…" })}`, async ({ browser, baseURL }) => {
+        test(`${route.role}: ${route.path({ productSlug: "…", categorySlug: "…", productId: "…", orderId: "…", messageId: "…" })}`, async ({ browser, baseURL }) => {
           test.setTimeout(120_000)
           const context = await open(browser, route.role, viewport)
           const page = await context.newPage()

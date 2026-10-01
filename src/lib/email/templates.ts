@@ -4,7 +4,7 @@ import type { Locale } from "@/lib/i18n/config"
 import { createTranslator, type MessageKey, type Translator } from "@/lib/i18n/translator"
 import { en } from "@/locales/en"
 import { am } from "@/locales/am"
-import type { OutboxContact, OutboxOrder, OutboxRow, RenderedEmail } from "@/lib/email/types"
+import type { OutboxContact, OutboxOrder, OutboxReply, OutboxRow, RenderedEmail } from "@/lib/email/types"
 
 // The store's emails, as HTML (a simple table layout that survives Gmail,
 // Outlook and phone mail apps, styles inline) plus a plain-text copy. The
@@ -227,6 +227,37 @@ function contactMessage(contact: OutboxContact, ctx: EmailContext): RenderedEmai
   }
 }
 
+// The admin's answer, to the customer, in the language they wrote in, with
+// their own message quoted below. Replying to it reaches the shop.
+function contactReply(contact: OutboxContact, reply: OutboxReply, locale: Locale, ctx: EmailContext): RenderedEmail {
+  const t = translators[locale]
+  const original = contact.subject?.replace(/\s+/g, " ").trim()
+  const subject = original
+    ? t("email.reply.subject", { subject: original.replace(/^(re:\s*)+/i, "") })
+    : t("email.reply.subjectFallback", { brand: BRAND_NAME })
+  const parts: Part[] = [
+    paragraph(t("email.greeting", { name: contact.name })),
+    [
+      `<div style="margin:0 0 20px;font-size:15px;line-height:1.6;color:${COLORS.text}">${escapeHtml(reply.body).replace(/\n/g, "<br>")}</div>`,
+      reply.body,
+    ],
+    paragraph(t("email.signoff", { brand: BRAND_NAME })),
+    [
+      `<div style="margin:8px 0 0;padding:12px 16px;border-left:3px solid ${COLORS.line};font-size:14px;line-height:1.6;color:${COLORS.muted}"><span style="display:block;font-size:12px;letter-spacing:0.06em;text-transform:uppercase">${escapeHtml(t("email.reply.quoteLabel"))}</span>${escapeHtml(contact.message).replace(/\n/g, "<br>")}</div>`,
+      `${t("email.reply.quoteLabel")}:\n${contact.message
+        .split("\n")
+        .map((line) => `> ${line}`)
+        .join("\n")}`,
+    ],
+  ]
+  return {
+    to: contact.email,
+    replyTo: ctx.shopEmail,
+    subject,
+    ...layout(locale, t("email.reply.heading"), parts, t),
+  }
+}
+
 // null = nothing to send (the order or message is gone, or has no address).
 export function renderEmail(row: OutboxRow, ctx: EmailContext): RenderedEmail | null {
   const locale: Locale = row.locale === "am" ? "am" : "en"
@@ -239,6 +270,8 @@ export function renderEmail(row: OutboxRow, ctx: EmailContext): RenderedEmail | 
       return row.order ? orderAlert(row.order, ctx) : null
     case "contact":
       return row.contact ? contactMessage(row.contact, ctx) : null
+    case "contact_reply":
+      return row.contact && row.reply ? contactReply(row.contact, row.reply, locale, ctx) : null
     default:
       return null
   }

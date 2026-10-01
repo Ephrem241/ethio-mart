@@ -40,9 +40,9 @@ export function isUndeliverable(address: string | null | undefined): boolean {
 
 // The address that decides whether a row is test traffic: the customer for
 // order emails (including the owner's alert about a test order), the sender
-// for contact messages.
+// for contact messages and the admin's replies to them.
 function originAddress(row: OutboxRow): string | null {
-  if (row.kind === "contact") return row.contact?.email ?? null
+  if (row.kind === "contact" || row.kind === "contact_reply") return row.contact?.email ?? null
   return row.order?.customer_email ?? null
 }
 

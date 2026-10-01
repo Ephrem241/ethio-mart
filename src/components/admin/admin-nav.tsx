@@ -2,11 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, FolderTree, ShoppingCart, Users, Home } from "lucide-react"
+import { useEffect } from "react"
+import { LayoutDashboard, Package, FolderTree, ShoppingCart, Users, Home, Mail } from "lucide-react"
 import { cn } from "cn"
 
 import { useT } from "@/lib/i18n/provider"
 import type { MessageKey } from "@/lib/i18n/translator"
+import { useUnreadMessageCount } from "@/lib/hooks/use-admin-data"
+import { MESSAGES_CHANGED_EVENT } from "@/lib/services/admin-messages"
 
 const ADMIN_NAV_ITEMS: { href: string; label: MessageKey; icon: typeof Home }[] = [
   { href: "/admin", label: "admin.nav.dashboard", icon: LayoutDashboard },
@@ -14,6 +17,7 @@ const ADMIN_NAV_ITEMS: { href: string; label: MessageKey; icon: typeof Home }[] 
   { href: "/admin/categories", label: "admin.nav.categories", icon: FolderTree },
   { href: "/admin/orders", label: "admin.nav.orders", icon: ShoppingCart },
   { href: "/admin/customers", label: "admin.nav.customers", icon: Users },
+  { href: "/admin/messages", label: "admin.nav.messages", icon: Mail },
   { href: "/admin/homepage", label: "admin.nav.homepage", icon: Home },
 ]
 
@@ -27,6 +31,17 @@ function isActive(pathname: string, href: string): boolean {
 function AdminNav() {
   const t = useT()
   const pathname = usePathname()
+  const { data: unread, reload: reloadUnread } = useUnreadMessageCount()
+
+  // Fresh on every admin page, and whenever a message is read, answered or
+  // deleted (see admin-messages.ts).
+  useEffect(() => {
+    reloadUnread()
+  }, [pathname, reloadUnread])
+  useEffect(() => {
+    window.addEventListener(MESSAGES_CHANGED_EVENT, reloadUnread)
+    return () => window.removeEventListener(MESSAGES_CHANGED_EVENT, reloadUnread)
+  }, [reloadUnread])
 
   return (
     <nav aria-label={t("admin.nav.label")} className="space-y-2 lg:space-y-1">
@@ -45,6 +60,12 @@ function AdminNav() {
           >
             <Icon aria-hidden className="size-4" />
             {t(item.label)}
+            {item.href === "/admin/messages" && !!unread && (
+              <span className="ml-auto rounded-full bg-forest px-2 py-0.5 text-xs font-medium text-white">
+                <span aria-hidden>{unread}</span>
+                <span className="sr-only"> ({t.plural("admin.messages.unreadCount", unread)})</span>
+              </span>
+            )}
           </Link>
         )
       })}

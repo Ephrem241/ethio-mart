@@ -38,6 +38,13 @@ export const email = {
     intro: "{name} ({email}) placed order {number}.",
     open: "Open it in the admin",
   },
+  // The admin's answer to a contact-form message, to the customer.
+  reply: {
+    subject: "Re: {subject}",
+    subjectFallback: "Your message to {brand}",
+    heading: "A reply to your message",
+    quoteLabel: "Your message",
+  },
   contact: {
     subject: "Contact form: {subject}",
     noSubject: "(no subject)",

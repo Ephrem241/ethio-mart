@@ -6,6 +6,7 @@ import { createResendMailer } from "@/lib/email/resend"
 import { escapeHtml, renderEmail } from "@/lib/email/templates"
 import type { OutboxOrder, OutboxRow } from "@/lib/email/types"
 import { contactSchema } from "@/components/contact/contact-schema"
+import { replySchema } from "@/components/admin/reply-schema"
 
 const ctx = { siteUrl: "https://evaelstore.et", shopEmail: "owner@evaelstore.et" }
 
@@ -88,6 +89,22 @@ describe("email templates", () => {
     expect(renderEmail(row({ kind: "contact", order: null, contact: { ...contact, subject: null } }), ctx)!.subject).toBe("Contact form: (no subject)")
   })
 
+  it("reply to a contact message: to the customer, in their language, reply-to the shop, their message quoted", () => {
+    const contact = { name: "Sara", email: "sara@mail.et", subject: "Re: Delivery", message: "When will it <b>come</b>?", created_at: "2026-09-30T10:00:00Z" }
+    const reply = { body: "Tomorrow morning.\n<i>Thanks</i>", created_at: "2026-09-30T11:00:00Z" }
+    const email = renderEmail(row({ kind: "contact_reply", order: null, contact, reply }), ctx)!
+    expect(email.to).toBe("sara@mail.et")
+    expect(email.replyTo).toBe(ctx.shopEmail)
+    expect(email.subject).toBe("Re: Delivery")
+    expect(email.html).toContain("Tomorrow morning.<br>&lt;i&gt;Thanks&lt;/i&gt;")
+    expect(email.html).toContain("When will it &lt;b&gt;come&lt;/b&gt;?")
+    expect(email.text).toContain("> When will it <b>come</b>?")
+    const am = renderEmail(row({ kind: "contact_reply", locale: "am", order: null, contact: { ...contact, subject: null }, reply }), ctx)!
+    expect(am.subject).toBe("ለEvael Store የላኩት መልእክት")
+    expect(am.html).toContain('lang="am"')
+    expect(renderEmail(row({ kind: "contact_reply", order: null, contact, reply: null }), ctx)).toBeNull()
+  })
+
   it("nothing to send when the order is gone or has no address", () => {
     expect(renderEmail(row({ order: null }), ctx)).toBeNull()
     expect(renderEmail(row({ order: { ...order, customer_email: null } }), ctx)).toBeNull()
@@ -142,6 +159,18 @@ describe("email dispatch", () => {
     const result = await dispatchEmails({ mailer: f.mailer, outbox: f.outbox, from: "x@evaelstore.et", context: ctx })
     expect(result).toEqual({ sent: 0, failed: 0, skipped: 3 })
     expect(f.completed.map(([id, error]) => [id, error])).toEqual([["a", null], ["b", null], ["c", null]])
+  })
+
+  it("sends the admin's reply to the customer, but never to a test address", async () => {
+    const reply = { body: "Thanks!", created_at: "2026-09-30T11:00:00Z" }
+    const contact = (email: string) => ({ name: "Sara", email, subject: null, message: "Hello there, a question.", created_at: "2026-09-30T10:00:00Z" })
+    const f = fakes([
+      row({ id: "a", kind: "contact_reply", order: null, contact: contact("sara@mail.et"), reply }),
+      row({ id: "b", kind: "contact_reply", order: null, contact: contact("e2e-contact@example.com"), reply }),
+    ])
+    const result = await dispatchEmails({ mailer: f.mailer, outbox: f.outbox, from: "x@evaelstore.et", context: ctx })
+    expect(result).toEqual({ sent: 1, failed: 0, skipped: 1 })
+    expect(f.sent.map((m) => m.to)).toEqual(["sara@mail.et"])
   })
 
   it("works through more than one batch", async () => {
@@ -267,5 +296,14 @@ describe("contact form rules", () => {
     expect(errorsOf({ ...good, message: "Too short" })).toEqual(["message"])
     expect(errorsOf({ ...good, message: "x".repeat(3001) })).toEqual(["message"])
     expect(errorsOf({ ...good, subject: "x".repeat(151) })).toEqual(["subject"])
+  })
+})
+
+describe("admin reply rules", () => {
+  it("matches the database's limits (1 to 5000 characters, spaces alone don't count)", () => {
+    expect(replySchema.safeParse({ body: "Thanks!" }).success).toBe(true)
+    expect(replySchema.safeParse({ body: "   " }).success).toBe(false)
+    expect(replySchema.safeParse({ body: "x".repeat(5000) }).success).toBe(true)
+    expect(replySchema.safeParse({ body: "x".repeat(5001) }).success).toBe(false)
   })
 })

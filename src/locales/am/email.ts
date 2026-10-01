@@ -36,6 +36,13 @@ export const email: Dictionary["email"] = {
     intro: "{name} ({email}) ትዕዛዝ {number} አስገብተዋል።",
     open: "በአስተዳዳሪ ገጽ ይክፈቱ",
   },
+  reply: {
+    // "Re:" stays as it is, so mail apps keep the conversation together.
+    subject: "Re: {subject}",
+    subjectFallback: "ለ{brand} የላኩት መልእክት",
+    heading: "ለመልእክትዎ የተሰጠ መልስ",
+    quoteLabel: "የእርስዎ መልእክት",
+  },
   contact: {
     subject: "የመገናኛ ቅጽ፦ {subject}",
     noSubject: "(ርዕስ የለም)",
