@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ChevronRight, Heart, LogOut, MapPin, Package, Settings, User } from "lucide-react"
+import { ChevronRight, Heart, LayoutDashboard, LogOut, MapPin, Package, Settings, User } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "cn"
 
@@ -19,6 +19,9 @@ const ACCOUNT_NAV_ITEMS: { href: string; label: MessageKey; icon: typeof User }[
   { href: "/account/addresses", label: "account.nav.addresses", icon: MapPin },
   { href: "/account/settings", label: "account.nav.settings", icon: Settings },
 ]
+
+// Shown to admins only: nothing else on the storefront leads to /admin.
+const ADMIN_ITEM = { href: "/admin", label: "account.nav.admin", icon: LayoutDashboard } as const
 
 // Plain exact-match, not the shared isActivePath prefix-matcher: "/account"
 // would prefix-match every other item here (isActivePath treats "/account"
@@ -56,7 +59,7 @@ function AccountNav() {
       )}
 
       <nav aria-label={t("account.nav.label")} className="space-y-2 lg:space-y-1">
-        {ACCOUNT_NAV_ITEMS.map((item) => {
+        {(user?.role === "admin" ? [...ACCOUNT_NAV_ITEMS, ADMIN_ITEM] : ACCOUNT_NAV_ITEMS).map((item) => {
           const active = isActive(pathname, item.href)
           const Icon = item.icon
           return (

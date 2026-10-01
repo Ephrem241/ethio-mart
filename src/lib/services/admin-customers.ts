@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client"
+import { translate } from "@/lib/i18n/translate"
 import type { Role } from "@/lib/store/auth"
 
 // Minimal view of a profile for admin screens. The list deliberately
@@ -40,4 +41,16 @@ export async function fetchProfiles(): Promise<AdminProfile[]> {
     role: row.role,
     createdAt: row.created_at,
   }))
+}
+
+// Gives or takes away admin access. The database allows this only for an
+// admin (RLS), and silently keeps the old role for anyone else (the
+// prevent_role_self_escalation trigger), so the saved role is read back.
+export async function setUserRole(id: string, role: Role): Promise<{ success: true } | { success: false; error: string }> {
+  const { data, error } = await createClient().from("profiles").update({ role }).eq("id", id).select("role")
+  if (error) return { success: false, error: translate("common.somethingWentWrong") }
+  if (!data || data.length === 0 || (data[0] as { role: Role }).role !== role) {
+    return { success: false, error: translate("errors.notAllowed") }
+  }
+  return { success: true }
 }

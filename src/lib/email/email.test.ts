@@ -89,12 +89,13 @@ describe("email templates", () => {
     expect(renderEmail(row({ kind: "contact", order: null, contact: { ...contact, subject: null } }), ctx)!.subject).toBe("Contact form: (no subject)")
   })
 
-  it("reply to a contact message: to the customer, in their language, reply-to the shop, their message quoted", () => {
+  it("reply to a contact message: to the customer, in their language, reply-to the shop with a copy to it, their message quoted", () => {
     const contact = { name: "Sara", email: "sara@mail.et", subject: "Re: Delivery", message: "When will it <b>come</b>?", created_at: "2026-09-30T10:00:00Z" }
     const reply = { body: "Tomorrow morning.\n<i>Thanks</i>", created_at: "2026-09-30T11:00:00Z" }
     const email = renderEmail(row({ kind: "contact_reply", order: null, contact, reply }), ctx)!
     expect(email.to).toBe("sara@mail.et")
     expect(email.replyTo).toBe(ctx.shopEmail)
+    expect(email.bcc).toBe(ctx.shopEmail)
     expect(email.subject).toBe("Re: Delivery")
     expect(email.html).toContain("Tomorrow morning.<br>&lt;i&gt;Thanks&lt;/i&gt;")
     expect(email.html).toContain("When will it &lt;b&gt;come&lt;/b&gt;?")
@@ -251,6 +252,12 @@ describe("Resend mailer", () => {
       text: message.text,
       reply_to: "sara@mail.et",
     })
+  })
+
+  it("sends a hidden copy when there is one", async () => {
+    const f = fakeFetch({ status: 200, body: { id: "49a3999c" } })
+    await createResendMailer("re_test", f.impl).send({ ...message, bcc: "owner@evaelstore.et" })
+    expect(JSON.parse(String(f.calls[0].init.body)).bcc).toEqual(["owner@evaelstore.et"])
   })
 
   it("leaves reply_to out when there is none", async () => {

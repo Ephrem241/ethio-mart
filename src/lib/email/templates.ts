@@ -228,7 +228,8 @@ function contactMessage(contact: OutboxContact, ctx: EmailContext): RenderedEmai
 }
 
 // The admin's answer, to the customer, in the language they wrote in, with
-// their own message quoted below. Replying to it reaches the shop.
+// their own message quoted below. Replying to it reaches the shop, and the
+// shop's mailbox gets a hidden copy, so the whole conversation is there.
 function contactReply(contact: OutboxContact, reply: OutboxReply, locale: Locale, ctx: EmailContext): RenderedEmail {
   const t = translators[locale]
   const original = contact.subject?.replace(/\s+/g, " ").trim()
@@ -253,6 +254,7 @@ function contactReply(contact: OutboxContact, reply: OutboxReply, locale: Locale
   return {
     to: contact.email,
     replyTo: ctx.shopEmail,
+    bcc: ctx.shopEmail,
     subject,
     ...layout(locale, t("email.reply.heading"), parts, t),
   }

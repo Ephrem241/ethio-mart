@@ -27,6 +27,7 @@ export function createResendMailer(apiKey: string, fetchImpl: typeof fetch = fet
           html: message.html,
           text: message.text,
           ...(message.replyTo ? { reply_to: message.replyTo } : {}),
+          ...(message.bcc ? { bcc: [message.bcc] } : {}),
         }),
         // Don't let a slow API hold the request open.
         signal: AbortSignal.timeout(15_000),

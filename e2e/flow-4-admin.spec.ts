@@ -19,7 +19,8 @@ test.describe("Flow 4: an administrator running the shop", () => {
       for (const label of [en.admin.dashboard.todaysSales, en.admin.dashboard.monthlySales, en.admin.dashboard.totalOrders, en.admin.dashboard.totalCustomers]) {
         await expect(main).toContainText(label)
       }
-      await expect(page.getByRole("navigation", { name: en.admin.nav.label }).getByRole("link")).toHaveCount(6)
+      // Dashboard, Products, Categories, Orders, Customers, Messages, Homepage.
+      await expect(page.getByRole("navigation", { name: en.admin.nav.label }).getByRole("link")).toHaveCount(7)
     })
 
     await test.step("creates a product", async () => {

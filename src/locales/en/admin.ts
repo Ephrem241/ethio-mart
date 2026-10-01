@@ -142,7 +142,7 @@ export const admin = {
   },
   customers: {
     title: "Customers",
-    subtitle: "A read-only view of your customers.",
+    subtitle: "Everyone with an account. Give admin access only to people you trust.",
     empty: "No customers yet.",
     columns: {
       customer: "Customer",
@@ -151,7 +151,22 @@ export const admin = {
       orders: "Orders",
       totalSpent: "Total spent",
       joined: "Joined",
+      role: "Role",
     },
+    roleAdmin: "Admin",
+    roleCustomer: "Customer",
+    you: "You",
+    makeAdmin: "Make admin",
+    removeAdmin: "Remove admin",
+    // {name} is the person's full name.
+    makeAdminLabel: "Make admin: {name}",
+    removeAdminLabel: "Remove admin: {name}",
+    makeAdminTitle: "Make {name} an admin?",
+    makeAdminText: "They will be able to manage products, categories, orders, customers, messages and the homepage, and give or remove admin access. They may need to sign out and back in to see the admin.",
+    removeAdminTitle: "Remove admin access from {name}?",
+    removeAdminText: "They will become a customer and can no longer open the admin.",
+    madeAdmin: "{name} is now an admin.",
+    removedAdmin: "{name} is no longer an admin.",
   },
   // Contact-form messages from customers, and the admin's email replies.
   messages: {

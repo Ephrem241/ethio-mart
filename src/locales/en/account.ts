@@ -7,6 +7,7 @@ export const account = {
     favorites: "Favorites",
     addresses: "Addresses",
     settings: "Settings",
+    admin: "Admin dashboard",
     logout: "Log out",
     loggedOut: "You've been logged out.",
   },

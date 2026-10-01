@@ -57,6 +57,8 @@ export interface OutboxRow {
 export interface RenderedEmail {
   to: string
   replyTo?: string
+  // A hidden copy (the shop's own copy of an admin reply).
+  bcc?: string
   subject: string
   html: string
   text: string

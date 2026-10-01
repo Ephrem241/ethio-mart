@@ -8,6 +8,7 @@ export const account: Dictionary["account"] = {
     favorites: "ተወዳጆች",
     addresses: "አድራሻዎች",
     settings: "ቅንብሮች",
+    admin: "የአስተዳዳሪ ገጽ",
     logout: "ውጣ",
     loggedOut: "ወጥተዋል።",
   },

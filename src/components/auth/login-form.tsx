@@ -38,7 +38,9 @@ function LoginForm({ redirectTo }: { redirectTo: string }) {
       return
     }
     toast.success(t("auth.login.welcome", { name: result.user.fullName.split(" ")[0] }))
-    router.push(redirectTo)
+    // An admin with nowhere particular to go lands in the admin area; a
+    // requested page (?redirect=…) still wins.
+    router.push(result.user.role === "admin" && redirectTo === "/account" ? "/admin" : redirectTo)
   }
 
   return (
